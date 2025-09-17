@@ -1,7 +1,12 @@
 [workspace]
 members = [
-    "crates/provenance_ssg"
+    "crates/provenance_ssg",
+    "crates/manifest_contract",
+    "crates/proofdown_parser",
+    "crates/renderers",
+    "crates/badges"
 ]
 
 [workspace.package]
 edition = "2021"
+license = "MIT OR Apache-2.0"
