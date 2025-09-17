@@ -60,6 +60,7 @@ Specs references for this plan:
 - [x] Update `examples/minimal/` with real SHA-256 values in `.provenance/manifest.json`
 - [x] Generate real Base64 signature for `examples/minimal/.provenance/manifest.json.sig`
 - [ ] Add a large JSON fixture for truncation tests (e.g., 5–10 MB) under `examples/minimal/ci/tests/`
+- [x] Add a large JSON fixture for truncation tests (e.g., 5–10 MB) under `examples/minimal/ci/tests/`
 - [x] Ensure `examples/minimal/ci/tests/failures.md` exists and is non-empty
 
 ---
@@ -79,7 +80,7 @@ Specs references for this plan:
   - [x] Allowed `render` values per `.specs/00_provenance.md#8-renderers` + schema
 - [ ] Unit tests + golden test vectors
   - [x] Canonicalization vectors from `.specs/12_canonicalization.md`
-  - [ ] Schema validation success/failure cases
+  - [x] Schema validation success/failure cases
 
 ---
 
@@ -154,15 +155,15 @@ Specs references for this plan:
 
 ## BDD Harness & Steps (`features/*.feature`)
 
-- [ ] Add Rust cucumber test runner for repo-level features
-- [ ] Steps: manifest schema validation + unique id check
-- [ ] Steps: canonicalization byte equality (shuffled keys)
-- [ ] Steps: signature verification success/failure
-- [ ] Steps: run SSG build and assert files exist and contain expected strings
+- [x] Add Rust cucumber test runner for repo-level features
+- [x] Steps: manifest schema validation + unique id check
+- [x] Steps: canonicalization byte equality (shuffled keys)
+- [x] Steps: signature verification success/failure
+- [x] Steps: run SSG build and assert files exist and contain expected strings
 - [ ] Steps: deterministic build (build twice and byte-compare)
-- [ ] Steps: truncation notice for large artifacts
+- [x] Steps: truncation notice for large artifacts
 - [ ] Steps: Proofdown unknown component -> error
-- [ ] Steps: badges JSON shape and values
+- [x] Steps: badges JSON shape and values
 
 ---
 
@@ -194,11 +195,11 @@ Specs references for this plan:
 
 ## CI & Determinism
 
-- [ ] GitHub Actions workflow
-  - [ ] `cargo fmt` / `clippy` / `build` for all crates
-  - [ ] Unit & integration tests
-  - [ ] BDD features
-  - [ ] Manifest schema + canonicalization + signature verify for `examples/minimal/` and crate manifests
+- [x] GitHub Actions workflow
+  - [x] `cargo fmt` / `clippy` / `build` for all crates
+  - [x] Unit & integration tests
+  - [x] BDD features
+  - [x] Manifest schema + canonicalization + signature verify for `examples/minimal/` and crate manifests
 - [ ] Determinism gate: build twice and diff checksums of key outputs
 - [ ] Provenance checks for examples and crate manifests
 

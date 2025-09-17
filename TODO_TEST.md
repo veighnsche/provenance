@@ -1,6 +1,6 @@
 # TODO_TEST — BDD (Gherkin) Plan and Step Map
 
-Status: Draft v0.1 (tests-first). This document enumerates granular Gherkin features, scenarios, steps, and their Rust step-function mappings for everything we own in this repo.
+Status: In Progress v0.2 (cucumber macros wired across crates). This document enumerates granular Gherkin features, scenarios, steps, and their Rust step-function mappings for everything we own in this repo.
 
 Guiding rules
 - Deterministic: no network, no time-based behavior, stable ordering and formats.
@@ -28,8 +28,9 @@ Guiding rules
   - `crates/badges/tests/bdd/steps_badges.rs`
   - `crates/tools/tests/bdd/steps_tools.rs`
   - `crates/*/tests/bdd/mod.rs` to register steps
-- Minimal harness (Week 4)
-  - `crates/bdd_harness/` (optional tiny crate) or inline test modules parsing `.feature` files and dispatching steps.
+- Per-crate Cucumber harness (in place)
+  - Each crate defines `tests/bdd_main.rs` with an async tokio main using cucumber macros and a local `World` (see `crates/*/tests/bdd_world/mod.rs`).
+  - Legacy `bdd_harness` remains only for `manifest_contract` behind `#[cfg(not(feature = "bdd"))]` and is not used when running with `--features bdd`.
 
 ---
 
@@ -226,20 +227,17 @@ Note: The actual harness (`bdd::...`) can be a tiny utility we write in Week 4, 
 
 ---
 
+## Status summary
+
+- Implemented via cucumber macros (per-crate): `manifest.feature`, `signing.feature`, `renderers.feature`, `ssg.feature`, `badges.feature`.
+- Pending: `tools.feature` and Proofdown front page integration scenarios (feature-gated via `external_pml`).
+
 ## Phased implementation plan
 
-- Week 1
-  - Implement `manifest.feature` and `signing.feature` steps (schema, canonicalization, verify).
-  - Land common context struct and helper utilities for repo-root resolution and tmp dirs.
-- Week 2
-  - Implement `renderers.feature` and `ssg.feature` (minimal generation + truncation + badges present).
-  - Add golden HTML snapshot(s) for determinism checks.
-- Week 3
-  - Implement `badges.feature` and complete tools CLI steps.
-  - Add negative scenarios for error messages surfaced to users.
-- Week 4
-  - Introduce tiny BDD harness crate or inline parser; wire `features/*.feature` execution into `cargo test`.
-  - Add CI gates to run BDD in `cargo xtask test-all`.
+- Week 1: Complete — manifest and signing steps implemented; common world/context utilities landed.
+- Week 2: Mostly complete — renderers and SSG steps implemented incl. truncation and badges; golden HTML snapshots TBD for determinism.
+- Week 3: In progress — badges scenarios implemented; tools CLI steps pending; add negative scenarios as needed.
+- Week 4: Harness in place via cucumber; CI gates run BDD through `cargo xtask test-all`.
 
 ---
 

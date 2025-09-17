@@ -22,14 +22,14 @@
 ## Week 1 — Contracts, Canonicalization, Test Fixtures
 
 - Manifest contract hardening (crate: `manifest_contract`)
-  - [ ] Add JSON Schema success/failure test cases (good/bad fixtures)
-  - [ ] Canonicalization golden test (bytes match across runs)
-  - [ ] Ed25519 verify path test (public test key in repo)
+  - [x] Add JSON Schema success/failure test cases (good/bad fixtures)
+  - [x] Canonicalization golden test (bytes match across runs)
+  - [x] Ed25519 verify path test (public test key in repo)
 - SSG test fixtures
-  - [ ] Add large JSON fixture (5–10 MB) under `examples/minimal/ci/tests/` for truncation
+  - [x] Add large JSON fixture (5–10 MB) under `examples/minimal/ci/tests/` for truncation
   - [ ] Expand `failures.md` to include representative edge cases (UTF‑8, long lines)
 - CI & tooling
-  - [ ] Ensure GitHub CI checks out submodules, runs `cargo xtask check-all` and `test-all`
+  - [x] Ensure GitHub CI checks out submodules, runs `cargo xtask check-all` and `test-all`
   - [ ] Add `cargo tree -d` step (optional) to detect duplicate deps
 - Docs
   - [ ] Cross‑link contracts and specs in READMEs; finalize external‑ownership warnings
@@ -44,12 +44,12 @@ Exit criteria
 ## Week 2 — Proofdown Integration Surface + Renderers Golden Tests
 
 - Proofdown integration (without editing submodule code)
-  - [ ] Keep `external_pml` off by default; add an integration job that enables it
+  - [x] Keep `external_pml` off by default; add an integration job that enables it
   - [ ] Add golden AST JSON fixtures (exported from submodule examples) for a few front pages
   - [ ] Add SSG-side parser integration test that loads AST JSON and exercises renderer mapping
 - Renderers (crate: `renderers`)
   - [ ] Golden tests: `markdown`, `json` (pretty/escaped), `table:coverage`, `summary:test`, `image`
-  - [ ] Truncation policy tests using the large JSON fixture
+  - [x] Truncation policy tests using the large JSON fixture
 - Badges (crate: `badges`)
   - [ ] Schema-based validation of Shields JSON shapes; tests for `provenance`, `tests`, `coverage`
 
@@ -80,7 +80,7 @@ Exit criteria
 ## Week 4 — BDD Harness, Feature Gates, Release Prep
 
 - BDD (features/)
-  - [ ] Add a minimal Rust test harness that executes `features/*.feature` scenarios (smoke subset)
+  - [x] Add a minimal Rust test harness that executes `features/*.feature` scenarios (smoke subset)
   - [ ] Scenarios: signature failure, digest mismatch, missing artifact, basic Proofdown front page
 - Feature gates & docs
   - [ ] Document `external_pml` usage and integration workflow with the submodule
