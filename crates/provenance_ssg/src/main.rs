@@ -129,7 +129,7 @@ fn main() -> Result<()> {
     }
     if let Some(cv) = load_artifact_bytes(&manifest.artifacts, &args.root, "table:coverage")? {
         if let Ok(c) = serde_json::from_slice::<render::Coverage>(&cv) {
-            if let Some(t) = c.total { kpis.insert("Coverage", format!("{:.1}%", t.pct)); }
+            if let Some(ref t) = c.total { kpis.insert("Coverage", format!("{:.1}%", t.pct)); }
             coverage = Some(c);
         }
     }
@@ -140,7 +140,7 @@ fn main() -> Result<()> {
     let doc = pml::parse(&front_text).context("parse Proofdown front page")?;
     let index_inner = render_front_page(&doc, &manifest, &views, args.truncate_inline_bytes, &args.root)?;
     let index_html = render::page_base(index_inner);
-    write_html(&args.out.join("index.html"), &index_html)?;
+    write_html(args.out.join("index.html"), &index_html)?;
 
     // Render per-artifact pages
     for v in &views {
@@ -170,7 +170,7 @@ fn main() -> Result<()> {
         let page_html = render::artifact_page(&v.as_view(), &body);
         let out_dir = args.out.join("a").join(&a.id);
         fs::create_dir_all(&out_dir).context("create artifact page dir")?;
-        write_html(&out_dir.join("index.html"), &page_html)?;
+        write_html(out_dir.join("index.html"), &page_html)?;
     }
 
     // robots.txt
@@ -186,12 +186,14 @@ fn main() -> Result<()> {
     write_badge(&badge_dir, "provenance", &prov_badge)?;
     // tests badge
     if let Some(s) = &tests_summary {
-        let b = badges_lib::badge_tests(s);
+        let s_badge = badges_lib::TestSummary { total: s.total, passed: s.passed, failed: s.failed, duration_seconds: s.duration_seconds };
+        let b = badges_lib::badge_tests(&s_badge);
         write_badge(&badge_dir, "tests", &b)?;
     }
     // coverage badge
     if let Some(c) = &coverage {
-        let b = badges_lib::badge_coverage(c);
+        let c_badge = badges_lib::Coverage { total: c.total.as_ref().map(|t| badges_lib::CoverageTotal { pct: t.pct }) };
+        let b = badges_lib::badge_coverage(&c_badge);
         write_badge(&badge_dir, "coverage", &b)?;
     }
 

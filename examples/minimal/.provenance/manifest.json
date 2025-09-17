@@ -1,33 +1,40 @@
 {
-  "version": 1,
-  "repo": "acme/provenance",
-  "commit": "deadbeef",
-  "workflow_run": { "id": 1, "url": "https://github.com/acme/provenance/actions/runs/1", "attempt": 1 },
-  "front_page": { "title": "QA Evidence for {{ commit }}", "markup": "ci/front_page.pml" },
   "artifacts": [
     {
       "id": "tests-summary",
-      "title": "Test Summary",
-      "path": "ci/tests/summary.json",
       "media_type": "application/json",
+      "path": "ci/tests/summary.json",
       "render": "summary:test",
-      "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+      "sha256": "bccc4a0d996450e47c5e9cd247a136f540ef3fabbea54da6c4a9bafe947279b3",
+      "title": "Test Summary"
     },
     {
       "id": "coverage",
-      "title": "Coverage",
-      "path": "ci/coverage/coverage.json",
       "media_type": "application/json",
+      "path": "ci/coverage/coverage.json",
       "render": "table:coverage",
-      "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+      "sha256": "e0045d961409f5979e75436d16c25f129fc3f363a06dc3ebf8aac7c0f9b07d74",
+      "title": "Coverage"
     },
     {
       "id": "failures",
-      "title": "Failing Specs",
-      "path": "ci/tests/failures.md",
       "media_type": "text/markdown",
+      "path": "ci/tests/failures.md",
       "render": "markdown",
-      "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+      "sha256": "98a4c2c1f4c925f47983c4a3913a70d632befee3b125e54c9e83e287968d611f",
+      "title": "Failing Specs"
     }
-  ]
+  ],
+  "commit": "deadbeef",
+  "front_page": {
+    "markup": "ci/front_page.pml",
+    "title": "QA Evidence for {{ commit }}"
+  },
+  "repo": "acme/provenance",
+  "version": 1,
+  "workflow_run": {
+    "attempt": 1,
+    "id": 1,
+    "url": "https://github.com/acme/provenance/actions/runs/1"
+  }
 }

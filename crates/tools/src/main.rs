@@ -1,6 +1,7 @@
 use anyhow::{anyhow, Context, Result};
 use clap::{Parser, Subcommand};
 use ed25519_dalek::{Signer, SigningKey};
+use base64::Engine as _;
 use hex::ToHex;
 use manifest_contract as mc;
 use rand::rngs::OsRng;

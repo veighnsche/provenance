@@ -1,4 +1,3 @@
-use dioxus::prelude::*;
 use std::collections::BTreeMap;
 
 #[derive(Debug, Clone)]
@@ -14,19 +13,13 @@ pub struct ArtifactView<'a> {
 
 pub use renderers::{Coverage, TestSummary};
 
-pub fn page_base(children: Element) -> String {
-    let html = dioxus_ssr::render(rsx! {
-        html { lang: "en",
-            head { 
-                meta { name: "viewport", content: "width=device-width, initial-scale=1.0" }
-                style { dangerous_inner_html: "body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,sans-serif;margin:0;padding:0;color:#111} .container{max-width:1040px;margin:0 auto;padding:24px} header{padding:16px 0;border-bottom:1px solid #eee;margin-bottom:24px} .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px} .card{border:1px solid #eee;border-radius:8px;padding:16px;background:#fff} table{width:100%;border-collapse:collapse} thead th{scope:col} th,td{padding:8px;border-bottom:1px solid #eee;text-align:left} .badge{display:inline-block;padding:2px 8px;border-radius:6px;font-size:12px;color:#fff} .ok{background:#28a745} .warn{background:#ff9800} .err{background:#d32f2f} code, pre{background:#f7f7f7;border-radius:6px;padding:2px 6px} pre{padding:12px;overflow-x:auto} .muted{color:#777;font-size:14px}" }
-            }
-            body { 
-                div { class: "container", {children} }
-            }
-        }
-    });
-    html
+pub fn page_base(inner_html: String) -> String {
+    let style = "body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,sans-serif;margin:0;padding:0;color:#111} .container{max-width:1040px;margin:0 auto;padding:24px} header{padding:16px 0;border-bottom:1px solid #eee;margin-bottom:24px} .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px} .card{border:1px solid #eee;border-radius:8px;padding:16px;background:#fff} table{width:100%;border-collapse:collapse} thead th{scope:col} th,td{padding:8px;border-bottom:1px solid #eee;text-align:left} .badge{display:inline-block;padding:2px 8px;border-radius:6px;font-size:12px;color:#fff} .ok{background:#28a745} .warn{background:#ff9800} .err{background:#d32f2f} code, pre{background:#f7f7f7;border-radius:6px;padding:2px 6px} pre{padding:12px;overflow-x:auto} .muted{color:#777;font-size:14px}";
+    format!(
+        "<!doctype html><html lang=\"en\"><head><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"><style>{}</style></head><body><div class=\"container\">{}</div></body></html>",
+        style,
+        inner_html
+    )
 }
 
 pub fn index_page(
@@ -35,42 +28,41 @@ pub fn index_page(
     kpis: BTreeMap<&str, String>,
     featured: Vec<ArtifactView>,
 ) -> String {
-    let html = dioxus_ssr::render(rsx! {
-        div {
-            header { h1 { "{} — {}", title, commit } }
-            if !kpis.is_empty() {
-                div { class: "cards",
-                    for (k, v) in kpis.iter() {
-                        div { class: "card", h3 { "{}", *k }, p { strong { "{}", v } } }
-                    }
-                }
-            }
-            h2 { "Artifacts" }
-            div { class: "cards",
-                for a in featured.iter() {
-                    div { class: "card",
-                        h3 { "{}", a.title }
-                        p { class: "muted", "{}", a.id }
-                        p { if a.verified { span { class: "badge ok", "verified" } } else { span { class: "badge err", "digest mismatch" } } }
-                        p { a { href: format!("/a/{}/", a.id), "View" } " · " a { href: a.download_href.clone(), "Download" } }
-                    }
-                }
-            }
+    let mut inner = String::new();
+    inner.push_str(&format!("<header><h1>{} — {}</h1></header>", html_escape(title), html_escape(commit)));
+    if !kpis.is_empty() {
+        inner.push_str("<div class=\"cards\">");
+        for (k, v) in kpis.iter() {
+            inner.push_str(&format!("<div class=\"card\"><h3>{}</h3><p><strong>{}</strong></p></div>", html_escape(k), html_escape(v)));
         }
-    });
-    page_base(html)
+        inner.push_str("</div>");
+    }
+    inner.push_str("<h2>Artifacts</h2><div class=\"cards\">");
+    for a in featured.iter() {
+        inner.push_str(&format!(
+            "<div class=\"card\"><h3>{}</h3><p class=\"muted\">{}</p><p>{}</p><p><a href=\"/a/{}/\">View</a> · <a href=\"{}\">Download</a></p></div>",
+            html_escape(a.title),
+            html_escape(a.id),
+            if a.verified { "<span class=\"badge ok\">verified</span>".to_string() } else { "<span class=\"badge err\">digest mismatch</span>".to_string() },
+            html_escape(a.id),
+            html_escape(&a.download_href)
+        ));
+    }
+    inner.push_str("</div>");
+    page_base(inner)
 }
 
 pub fn artifact_page(a: &ArtifactView, body_html: &str) -> String {
-    let html = dioxus_ssr::render(rsx! {
-        div {
-            header { h1 { "{}", a.title } p { class: "muted", "{}", a.id } }
-            p { if a.verified { span { class: "badge ok", "verified" } } else { span { class: "badge err", "digest mismatch" } } }
-            article { dangerous_inner_html: body_html.to_string() }
-            p { a { href: a.download_href.clone(), "Download raw" } }
-        }
-    });
-    page_base(html)
+    let mut inner = String::new();
+    inner.push_str(&format!("<header><h1>{}</h1><p class=\"muted\">{}</p></header>", html_escape(a.title), html_escape(a.id)));
+    inner.push_str(&format!("<p>{}</p>", if a.verified { "<span class=\"badge ok\">verified</span>" } else { "<span class=\"badge err\">digest mismatch</span>" }));
+    inner.push_str(&format!("<article>{}</article>", body_html));
+    inner.push_str(&format!("<p><a href=\"{}\">Download raw</a></p>", html_escape(&a.download_href)));
+    page_base(inner)
+}
+
+fn html_escape(s: &str) -> String {
+    s.replace('&', "&amp;").replace('<', "&lt;").replace('>', "&gt;")
 }
 
 pub use renderers::{render_coverage, render_image, render_json_pretty, render_markdown, render_tests_summary};

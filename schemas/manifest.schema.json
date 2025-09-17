@@ -46,7 +46,7 @@
           "id": { "type": "string", "pattern": "^[a-z0-9]([a-z0-9-]*[a-z0-9])?$" },
           "title": { "type": "string", "minLength": 1 },
           "path": { "type": "string", "minLength": 1 },
-          "media_type": { "type": "string", "pattern": "^[^\s/]+/[^\s/]+" },
+          "media_type": { "type": "string", "pattern": "^[^\\s/]+/[^\\s/]+$" },
           "render": {
             "type": "string",
             "enum": [

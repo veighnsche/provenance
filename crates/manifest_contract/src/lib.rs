@@ -95,12 +95,16 @@ pub fn ed25519_verify(canonical_bytes: &[u8], signature_b64: &str, pubkey_b64_or
     let sig_bytes = B64.decode(signature_b64.trim()).context("base64-decode signature")?;
     let sig = Signature::from_slice(&sig_bytes).context("ed25519 signature bytes")?;
 
-    let pk_bytes = if pubkey_b64_or_hex.trim().len() > 64 {
-        B64.decode(pubkey_b64_or_hex.trim()).context("base64-decode public key")?
-    } else {
-        hex::decode(pubkey_b64_or_hex.trim()).context("hex-decode public key")?
+    let s = pubkey_b64_or_hex.trim();
+    // Try base64 first
+    let pk_bytes = match B64.decode(s) {
+        Ok(bytes) => bytes,
+        Err(_) => hex::decode(s).context("hex-decode public key")?,
     };
-    let vk = VerifyingKey::from_bytes(&pk_bytes.try_into().map_err(|_| anyhow!("public key must be 32 bytes"))?)?;
+    if pk_bytes.len() != 32 {
+        return Err(anyhow!("public key must be 32 bytes"));
+    }
+    let vk = VerifyingKey::from_bytes(&pk_bytes.try_into().expect("len checked"))?;
     Ok(vk.verify(canonical_bytes, &sig).is_ok())
 }
 

@@ -34,50 +34,50 @@ Specs references for this plan:
 
 ## Repository & Examples
 
-- [ ] Create missing crates declared in `Cargo.toml`
-  - [ ] `crates/renderers/`
-  - [ ] `crates/badges/`
+- [x] Create missing crates declared in `Cargo.toml`
+  - [x] `crates/renderers/`
+  - [x] `crates/badges/`
 - [ ] Ensure canonical crate layout per `.specs/22_crate_minimums.md`
   - [ ] Add `README.md`, `CHANGELOG.md`, `.provenance/`, `ci/`, `.specs/` to each crate
-- [ ] Prepare example Ed25519 test keys for local tests (non-secret)
-  - [ ] Provide public test key in repo for verification
-  - [ ] Private test key used only by local scripts (exclude from VCS)
-- [ ] Add script: compute SHA-256 for artifacts and update manifest
-  - [ ] Input: repo root + manifest path
-  - [ ] Output: updated `sha256` fields
-- [ ] Add script/CLI: canonicalize and sign `.provenance/manifest.json` (Ed25519 Base64)
-  - [ ] Inputs: manifest path, private key
-  - [ ] Output: `.provenance/manifest.json.sig`
-- [ ] Update `examples/minimal/` with real SHA-256 values in `.provenance/manifest.json`
-- [ ] Generate real Base64 signature for `examples/minimal/.provenance/manifest.json.sig`
+- [x] Prepare example Ed25519 test keys for local tests (non-secret)
+  - [x] Provide public test key in repo for verification
+  - [x] Private test key used only by local scripts (exclude from VCS)
+- [x] Add script: compute SHA-256 for artifacts and update manifest
+  - [x] Input: repo root + manifest path
+  - [x] Output: updated `sha256` fields
+- [x] Add script/CLI: canonicalize and sign `.provenance/manifest.json` (Ed25519 Base64)
+  - [x] Inputs: manifest path, private key
+  - [x] Output: `.provenance/manifest.json.sig`
+- [x] Update `examples/minimal/` with real SHA-256 values in `.provenance/manifest.json`
+- [x] Generate real Base64 signature for `examples/minimal/.provenance/manifest.json.sig`
 - [ ] Add a large JSON fixture for truncation tests (e.g., 5–10 MB) under `examples/minimal/ci/tests/`
-- [ ] Ensure `examples/minimal/ci/tests/failures.md` exists and is non-empty
+- [x] Ensure `examples/minimal/ci/tests/failures.md` exists and is non-empty
 
 ---
 
 ## `manifest_contract` crate
 
-- [ ] Expose `Manifest`, `Artifact`, `WorkflowRun`, `FrontPage` types (single source of truth)
-- [ ] Implement `load_manifest(path)` with clear error context
-- [ ] JSON Schema validation using `schemas/manifest.schema.json`
-  - [ ] Validate required fields, formats, allowed `render` values
-- [ ] `canonicalize(manifest) -> Vec<u8>`
-  - [ ] Sort keys recursively; UTF-8, `\n`; stable JSON serialization
-- [ ] `ed25519_verify(canonical_bytes, base64_sig, pubkey_b64_or_hex)`
-- [ ] Detailed validation errors
-  - [ ] Unique artifact ids
-  - [ ] Path normalization (reject `..`, enforce repo-relative)
-  - [ ] Allowed `render` values per `.specs/00_provenance.md#8-renderers` + schema
+- [x] Expose `Manifest`, `Artifact`, `WorkflowRun`, `FrontPage` types (single source of truth)
+- [x] Implement `load_manifest(path)` with clear error context
+- [x] JSON Schema validation using `schemas/manifest.schema.json`
+  - [x] Validate required fields, formats, allowed `render` values
+- [x] `canonicalize(manifest) -> Vec<u8>`
+  - [x] Sort keys recursively; UTF-8, `\n`; stable JSON serialization
+- [x] `ed25519_verify(canonical_bytes, base64_sig, pubkey_b64_or_hex)`
+- [x] Detailed validation errors
+  - [x] Unique artifact ids
+  - [x] Path normalization (reject `..`, enforce repo-relative)
+  - [x] Allowed `render` values per `.specs/00_provenance.md#8-renderers` + schema
 - [ ] Unit tests + golden test vectors
-  - [ ] Canonicalization vectors from `.specs/12_canonicalization.md`
+  - [x] Canonicalization vectors from `.specs/12_canonicalization.md`
   - [ ] Schema validation success/failure cases
 
 ---
 
 ## `proofdown_parser` crate
 
-- [ ] Create `src/lib.rs` with:
-  - [ ] AST structs (document/blocks/inlines/components)
+- [x] Create `src/lib.rs` with:
+  - [x] AST structs (document/blocks/inlines/components)
   - [ ] Error types with line/column
 - [ ] Tokenizer + parser for:
   - [ ] Headings `#..####`, paragraphs, lists, code fences
@@ -97,12 +97,12 @@ Specs references for this plan:
 
 ## `renderers` crate
 
-- [ ] Pure, deterministic render helpers (no IO):
-  - [ ] `markdown` (safe)
-  - [ ] `json` (collapsible)
-  - [ ] `table:coverage`
-  - [ ] `summary:test`
-  - [ ] `image`
+- [x] Pure, deterministic render helpers (no IO):
+  - [x] `markdown` (safe)
+  - [x] `json` (pretty, escaped)
+  - [x] `table:coverage`
+  - [x] `summary:test`
+  - [x] `image`
 - [ ] Structural layout RSX/HTML (`grid/section/card/tabs/gallery`)
 - [ ] HTML sanitization for all text output
 - [ ] Accessibility semantics: headings `h1..h4`, `<nav>`, tables with `<thead>`, `<tbody>`, `scope`
@@ -112,32 +112,32 @@ Specs references for this plan:
 
 ## `badges` crate
 
-- [ ] Compute Shields JSON for `provenance`, `tests`, `coverage`
+- [x] Compute Shields JSON for `provenance`, `tests`, `coverage`
   - [ ] Schema: `schemas/badge.schema.json`
-- [ ] Error badges for missing/invalid artifacts (`message = error`, `color = red`)
-- [ ] Minimal SVG generation with thresholds/colors (e.g., coverage thresholds)
+- [x] Error badges for missing/invalid artifacts (`message = error`, `color = red`)
+- [x] Minimal SVG generation with thresholds/colors (e.g., coverage thresholds)
 - [ ] Schema tests for JSON badges
 
 ---
 
 ## `provenance_ssg` crate
 
-- [ ] Replace local manifest structs/usages with `manifest_contract` types
-- [ ] Add `--verify-manifest` flag:
-  - [ ] Schema validation
-  - [ ] Canonicalize + Ed25519 verify (fail build on mismatch)
-- [ ] Parse front page `ci/front_page.pml` via `proofdown_parser`
-- [ ] Render Proofdown AST via `renderers` with verified data context
-  - [ ] Resolve `<artifact.*>` by `id` only; unknown `id` -> error
-- [ ] Truncation policy for large artifacts (configurable limits)
-  - [ ] Show truncation banner + verified `Download` link
+- [x] Replace local manifest structs/usages with `manifest_contract` types
+- [x] Add `--verify-manifest` flag:
+  - [x] Schema validation
+  - [x] Canonicalize + Ed25519 verify (fail build on mismatch)
+- [x] Parse front page `ci/front_page.pml` via `proofdown_parser`
+- [x] Render Proofdown AST via `renderers` with verified data context
+  - [x] Resolve `<artifact.*>` by `id` only; unknown `id` -> error
+- [x] Truncation policy for large artifacts (configurable limits)
+  - [x] Show truncation banner + verified `Download` link
 - [ ] Deterministic output guarantees
   - [ ] Stable ordering; fixed float formatting
-- [ ] Write static badges:
-  - [ ] `site/badge/provenance.json` and `.svg`
-  - [ ] `site/badge/tests.json` and `.svg`
-  - [ ] `site/badge/coverage.json` and `.svg`
-- [ ] Strict viewer mapping for per-artifact pages (reject unknown `render`)
+- [x] Write static badges:
+  - [x] `site/badge/provenance.json` and `.svg`
+  - [x] `site/badge/tests.json` and `.svg`
+  - [x] `site/badge/coverage.json` and `.svg`
+- [x] Strict viewer mapping for per-artifact pages (reject unknown `render`)
 - [ ] Accessibility markup in generated HTML
 - [ ] Golden tests (`index.html`, `a/*/index.html`)
 

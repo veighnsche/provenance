@@ -19,6 +19,7 @@
 # Environment & secrets
 .env
 .env.*
+examples/minimal/.provenance/private_test_ed25519.key
 
 # Logs
 *.log
