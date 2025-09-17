@@ -1,0 +1,14 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://example.com/provenance/badge.schema.json",
+  "title": "Provenance Badge (Shields)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "label", "message", "color"],
+  "properties": {
+    "schemaVersion": { "type": "integer", "const": 1 },
+    "label": { "type": "string", "minLength": 1 },
+    "message": { "type": "string", "minLength": 1 },
+    "color": { "type": "string", "minLength": 1 }
+  }
+}

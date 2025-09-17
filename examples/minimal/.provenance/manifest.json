@@ -1,0 +1,33 @@
+{
+  "version": 1,
+  "repo": "acme/provenance",
+  "commit": "deadbeef",
+  "workflow_run": { "id": 1, "url": "https://github.com/acme/provenance/actions/runs/1", "attempt": 1 },
+  "front_page": { "title": "QA Evidence for {{ commit }}", "markup": "ci/front_page.pml" },
+  "artifacts": [
+    {
+      "id": "tests-summary",
+      "title": "Test Summary",
+      "path": "ci/tests/summary.json",
+      "media_type": "application/json",
+      "render": "summary:test",
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+    },
+    {
+      "id": "coverage",
+      "title": "Coverage",
+      "path": "ci/coverage/coverage.json",
+      "media_type": "application/json",
+      "render": "table:coverage",
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+    },
+    {
+      "id": "failures",
+      "title": "Failing Specs",
+      "path": "ci/tests/failures.md",
+      "media_type": "text/markdown",
+      "render": "markdown",
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+    }
+  ]
+}

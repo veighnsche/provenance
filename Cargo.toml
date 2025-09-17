@@ -1,0 +1,7 @@
+[workspace]
+members = [
+    "crates/provenance_ssg"
+]
+
+[workspace.package]
+edition = "2021"
