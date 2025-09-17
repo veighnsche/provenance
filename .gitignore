@@ -1,0 +1,30 @@
+# Rust
+/target/
+**/target/
+
+# Generated static site output
+/site/
+**/site/
+
+# Node & tooling (just in case)
+/node_modules/
+/.wrangler/
+/.parcel-cache/
+
+# OS/editor
+.DS_Store
+.idea/
+.vscode/
+
+# Environment & secrets
+.env
+.env.*
+
+# Logs
+*.log
+
+# Cargo artifacts (keep Cargo.lock committed for binaries)
+# /Cargo.lock
+
+# Misc
+*.rs.bk

@@ -1,0 +1,16 @@
+* text=auto eol=lf
+
+# Treat images as binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+
+# Keep line endings consistent in scripts and text
+*.sh text eol=lf
+*.md text eol=lf
+*.pml text eol=lf
+*.rs text eol=lf
+*.toml text eol=lf
+*.json text eol=lf
