@@ -2,7 +2,7 @@
 
 This document defines the repository‑level contract for powering a Provenance mirror: the entry point the service reads, required files and layout, naming, publishing, and validation rules.
 
-Related specs: `./00_provenance.md`, `./01_proofdown.md`, `./02_worker.md`.
+Related specs: `./00_provenance.md`, `./10_proofdown.md`, `./16_worker.md`.
 
 ---
 

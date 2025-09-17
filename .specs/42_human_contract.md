@@ -2,7 +2,7 @@
 
 This document defines the human‑facing contract: which URLs are available, how to navigate and review testing artifacts and documentation, and how the UI ensures AI‑generated code is human‑reviewable.
 
-Related specs: `./00_provenance.md`, `./01_proofdown.md`, `./02_worker.md`.
+Related specs: `./00_provenance.md`, `./10_proofdown.md`, `./16_worker.md`.
 
 ---
 

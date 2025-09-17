@@ -2,7 +2,7 @@
 
 This checklist defines minimum accessibility requirements for the Provenance UI and viewers.
 
-Related: `./01_proofdown.md`, `./10_human_contract.md`.
+Related: `./10_proofdown.md`, `./42_human_contract.md`.
 
 ---
 

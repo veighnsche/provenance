@@ -2,7 +2,7 @@
 
 This document defines the contract for AI/LLM developers and IDE assistants to qualify for a Provenance badge. It specifies the expected prompts, workflows, artifacts, and acceptance gates enforced by CI and the Worker.
 
-Related specs: `./00_provenance.md`, `./01_proofdown.md`, `./02_worker.md`, `./11_repo_contract.md`.
+Related specs: `./00_provenance.md`, `./10_proofdown.md`, `./20_worker.md`, `./11_repo_contract.md`.
 
 ---
 

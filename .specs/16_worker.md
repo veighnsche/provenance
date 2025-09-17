@@ -1,6 +1,6 @@
 # Cloudflare Worker Runtime Spec — Provenance (v1‑draft)
 
-This document defines the technical requirements to run the Provenance mirror on Cloudflare Workers (V8 isolate). It complements the core spec (`.specs/00_provenance.md`) and the markup spec (`.specs/01_proofdown.md`).
+This document defines the technical requirements to run the Provenance mirror on Cloudflare Workers (V8 isolate). It complements the core spec (`.specs/00_provenance.md`) and the markup spec (`.specs/10_proofdown.md`).
 
 Status: draft. Behavior described here is normative for the Worker implementation.
 

@@ -2,7 +2,7 @@
 
 This document defines the minimum requirements for each crate to ensure seamless development (DX), testability, provenance, and publishability. Every crate is treated as a product with its own docs, specs, implementation plan, bugs, tests, testing artifacts, and provenance manifest.
 
-Related: `./06_workspace.md`, `./07_testing_and_tiers.md`.
+Related: `./18_workspace.md`, `./20_testing_and_tiers.md`.
 
 ---
 

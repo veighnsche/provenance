@@ -2,7 +2,7 @@
 
 This document defines how to produce a stable byte representation of the Provenance Manifest for signing and verification.
 
-Related: `./11_repo_contract.md`, `./02_worker.md`, `schemas/manifest.schema.json`.
+Related: `./44_repo_contract.md`, `./16_worker.md`, `schemas/manifest.schema.json`.
 
 ---
 

@@ -2,7 +2,7 @@
 
 This document specifies how the Provenance Manifest is signed and verified.
 
-Related: `./03_canonicalization.md`, `./11_repo_contract.md`, `./02_worker.md`, `schemas/manifest.schema.json`.
+Related: `./12_canonicalization.md`, `./44_repo_contract.md`, `./16_worker.md`, `schemas/manifest.schema.json`.
 
 ---
 

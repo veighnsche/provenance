@@ -2,7 +2,7 @@
 
 This document defines how we test in the Provenance workspace and what each crate must provide at each readiness tier (pre‑alpha → production). It also specifies crate‑level provenance conventions so this repository functions as a provenance example.
 
-Related: `./00_provenance.md`, `./01_proofdown.md`, `./02_worker.md`, `./03_canonicalization.md`, `./04_signing.md`, `./06_workspace.md`.
+Related: `./00_provenance.md`, `./10_proofdown.md`, `./16_worker.md`, `./12_canonicalization.md`, `./14_signing.md`, `./18_workspace.md`.
 
 ---
 

@@ -5,7 +5,7 @@
 - **MUST/SHOULD/MAY** follow RFC-2119.
 - **Index (Manifest)**: the signed config that enumerates all renderable artifacts and the front-page markup. By convention it is published at `.provenance/manifest.json` with signature `.provenance/manifest.json.sig`.
 - **Artifact**: any file produced by CI and referenced by the Index.
-- **Proofdown**: the safer-than-HTML markup rendered by the Worker (working name). See `.specs/01_proofdown.md`. Recommended extension: `.pml`.
+- **Proofdown**: the safer-than-HTML markup rendered by the Worker (working name). See `.specs/10_proofdown.md`. Recommended extension: `.pml`.
 - **Worker**: the Cloudflare Worker serving the site.
 
 ---
@@ -41,7 +41,7 @@
   - `sha256` (hex)
 - The Index **SHOULD** be JSON or TOML; YAML **MAY** be used if parser weight is acceptable.
 - The Index **MAY** include grouping/section metadata for navigation.
- - Recommended publish path to avoid collisions: `.provenance/manifest.json` (signature: `.provenance/manifest.json.sig`).
+- Recommended publish path to avoid collisions: `.provenance/manifest.json` (signature: `.provenance/manifest.json.sig`).
 
 ---
 
@@ -61,7 +61,7 @@
 - Proofdown **MUST** support a whitelisted set of structural components (e.g., `grid`, `tabs`, `card`, `section`, `gallery`).
 - Proofdown **MUST** support **artifact components** that reference Artifacts **by `id` only** (e.g., `artifact.markdown`, `artifact.table`, `artifact.json`, `artifact.image`, `artifact.summary`, `artifact.gauge`, `artifact.viewer kind="llm-proof"`).
 - Proofdown **MUST** allow data interpolation from verified Index fields via a safe placeholder syntax (e.g., `{{ commit }}`).
-- Proofdown **SHOULD** provide a link macro as specified in `.specs/01_proofdown.md` supporting `a:` artifact links and commit-pinned `repo:` links that resolve only to verified resources.
+- Proofdown **SHOULD** provide a link macro as specified in `.specs/10_proofdown.md` supporting `a:` artifact links and commit-pinned `repo:` links that resolve only to verified resources.
 - The renderer **MUST** reject any component referencing an unknown `id`.
 - The language **SHOULD** be deterministic and side-effect-free.
 - The renderer **MAY** expose a minimal style system (e.g., component attributes like `cols=3`, `gap=16`) but **MUST NOT** accept raw style strings.
