@@ -21,4 +21,8 @@ regex = "1"
 manifest_contract = { path = "../manifest_contract" }
 renderers = { path = "../renderers" }
 badges = { path = "../badges" }
-proofdown_parser = { path = "../proofdown_parser" }
+proofdown_parser = { path = "../proofdown_parser/crates/proofdown_parser", optional = true }
+
+[features]
+external_pml = ["proofdown_parser"]
+default = []

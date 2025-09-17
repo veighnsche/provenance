@@ -5,6 +5,7 @@ use badges as badges_lib;
 use clap::Parser;
 use manifest_contract as mc;
 use percent_encoding::{utf8_percent_encode, NON_ALPHANUMERIC};
+#[cfg(feature = "external_pml")]
 use proofdown_parser as pml;
 use sha2::{Digest, Sha256};
 use std::collections::BTreeMap;
@@ -134,13 +135,28 @@ fn main() -> Result<()> {
         }
     }
 
-    // Parse and render Proofdown front page
-    let front_path = args.root.join(&manifest.front_page.markup);
-    let front_text = fs::read_to_string(&front_path).with_context(|| format!("read front page {}", front_path.display()))?;
-    let doc = pml::parse(&front_text).context("parse Proofdown front page")?;
-    let index_inner = render_front_page(&doc, &manifest, &views, args.truncate_inline_bytes, &args.root)?;
-    let index_html = render::page_base(index_inner);
-    write_html(args.out.join("index.html"), &index_html)?;
+    // Build index page
+    #[cfg(feature = "external_pml")]
+    {
+        // Parse and render Proofdown front page
+        let front_path = args.root.join(&manifest.front_page.markup);
+        let front_text = fs::read_to_string(&front_path).with_context(|| format!("read front page {}", front_path.display()))?;
+        let doc = pml::parse(&front_text).context("parse Proofdown front page")?;
+        let index_inner = render_front_page(&doc, &manifest, &views, args.truncate_inline_bytes, &args.root)?;
+        let index_html = render::page_base(index_inner);
+        write_html(args.out.join("index.html"), &index_html)?;
+    }
+    #[cfg(not(feature = "external_pml"))]
+    {
+        // Fallback: simple index using KPIs and featured artifacts without Proofdown parsing
+        let index_html = render::index_page(
+            &manifest.front_page.title,
+            &manifest.commit,
+            kpis,
+            views.iter().map(|v| v.as_view()).collect(),
+        );
+        write_html(args.out.join("index.html"), &index_html)?;
+    }
 
     // Render per-artifact pages
     for v in &views {
@@ -272,6 +288,7 @@ fn write_badge(dir: &Path, kind: &str, b: &badges_lib::ShieldsBadge) -> Result<(
     Ok(())
 }
 
+#[cfg(feature = "external_pml")]
 fn render_front_page(doc: &pml::Document, manifest: &mc::Manifest, views: &[ArtifactViewExt], truncate_limit: usize, root: &Path) -> Result<String> {
     // Minimal renderer for the example components: grid/card + artifact.summary/table/markdown
     fn render_blocks(blocks: &[pml::Block], manifest: &mc::Manifest, views: &[ArtifactViewExt], truncate_limit: usize, root: &Path) -> Result<String> {

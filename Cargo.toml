@@ -2,11 +2,12 @@
 members = [
     "crates/provenance_ssg",
     "crates/manifest_contract",
-    "crates/proofdown_parser",
     "crates/renderers",
     "crates/badges",
-    "crates/tools"
+    "crates/tools",
+    "xtask"
 ]
+resolver = "2"
 
 [workspace.package]
 edition = "2021"
