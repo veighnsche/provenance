@@ -1,0 +1,4 @@
+[submodule "crates/proofdown_parser"]
+	path = crates/proofdown_parser
+	url = git@github.com:veighnsche/proofdown_parser.git
+	branch = MAIN
