@@ -2,6 +2,12 @@
 
 This document is for our internal IDE AI agents working on this repository only. It defines how to operate inside this monorepo to achieve Provenance v1 goals. This is not for external adopters; external projects should follow `./.specs/46_llm_developer_contract.md`.
 
+> IMPORTANT: External Submodule Ownership — `crates/proofdown_parser`
+>
+> The Proofdown parser is maintained by external consultants in a nested workspace (git submodule).
+> Do NOT modify parser code in this repository. Propose changes in the submodule repo and update the
+> submodule pointer here. In this workspace, only integration wiring/feature gating should be changed.
+
 ---
 
 ## Quick Add‑On Prompt (copy/paste for the internal IDE AI)
@@ -31,7 +37,7 @@ Non‑goals: Do NOT mandate frameworks for external repos. That’s handled in .
 - Examples: `./examples/minimal/ci/*`, `./examples/minimal/.provenance/*`
 - Crates:
   - `./crates/manifest_contract/` — manifest types, load/validate, canonicalize, verify
-  - `./crates/proofdown_parser/` — Proofdown AST + parser
+  - `./crates/proofdown_parser/` — Proofdown AST + parser (EXTERNAL SUBMODULE; DO NOT MODIFY HERE)
   - `./crates/renderers/` — deterministic render helpers (to be created)
   - `./crates/badges/` — JSON+SVG badges (to be created)
   - `./crates/provenance_ssg/` — static site generator (bin)

@@ -2,6 +2,15 @@
 
 This backlog translates the specs in `.specs/` into a granular, actionable plan to reach v1 compliance and be fully tested. Keep this document updated as tasks are completed.
 
+> WARNING: External Submodule — `crates/proofdown_parser`
+>
+> The Proofdown parser is maintained by external consultants in a nested workspace (git submodule).
+> Do NOT modify parser code in this repository. Propose changes in the submodule repository and
+> update the submodule pointer here. In this workspace, only integration wiring/feature gating
+> should be changed.
+>
+> Path: `crates/proofdown_parser/` • Feature flag in SSG: `external_pml`
+
 Specs references for this plan:
 
 - `.specs/00_provenance.md`

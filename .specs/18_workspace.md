@@ -2,6 +2,13 @@
 
 This document outlines the crates in the Provenance monorepo and how they wire together for a read-only, deterministic static site build.
 
+> IMPORTANT: External Submodule — `crates/proofdown_parser`
+>
+> The Proofdown parser is an independent Rust workspace maintained by external consultants in a git submodule.
+> It is intentionally NOT a member of the outer workspace. Do not modify parser code in this repository; propose
+> changes in the submodule repo and update the submodule pointer here. In this workspace, only integration wiring
+> and feature gating should be changed.
+
 ---
 
 ## Crates and responsibilities

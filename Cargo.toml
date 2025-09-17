@@ -1,3 +1,6 @@
+# NOTE: External submodule: `crates/proofdown_parser` is an independent Rust workspace
+# maintained by external consultants. Do NOT add it to `members`. Integrate via
+# optional path dependency and feature gating in `crates/provenance_ssg`.
 [workspace]
 members = [
     "crates/provenance_ssg",

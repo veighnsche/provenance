@@ -5,6 +5,8 @@ use badges as badges_lib;
 use clap::Parser;
 use manifest_contract as mc;
 use percent_encoding::{utf8_percent_encode, NON_ALPHANUMERIC};
+// IMPORTANT: The Proofdown parser is an external submodule workspace maintained by external consultants.
+// Do NOT modify parser code in this repository. Integrate via feature-gated optional dependency only.
 #[cfg(feature = "external_pml")]
 use proofdown_parser as pml;
 use sha2::{Digest, Sha256};

@@ -4,6 +4,16 @@ Secure, deterministic publishing of CI artifacts backed by cryptographic provena
 
 Status: Spec v1. Implementation scaffolding and reference Worker are forthcoming.
 
+> IMPORTANT: External Submodule Ownership — `crates/proofdown_parser`
+>
+> The Proofdown parser lives in a separate git submodule and is maintained by external consultants.
+> Do NOT modify parser code in this repository. Propose changes in the submodule repository and
+> update the submodule pointer here. In this workspace, only integration wiring/feature gating
+> should be changed.
+>
+> Path: `crates/proofdown_parser/` (nested workspace)
+> Feature gating in SSG: `external_pml`
+
 ---
 
 ## Why this exists
