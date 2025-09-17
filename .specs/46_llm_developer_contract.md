@@ -2,74 +2,80 @@
 
 This document defines the contract for AI/LLM developers and IDE assistants to qualify for a Provenance badge. It specifies the expected prompts, workflows, artifacts, and acceptance gates enforced by CI and the Worker.
 
-Related specs: `./00_provenance.md`, `./10_proofdown.md`, `./20_worker.md`, `./11_repo_contract.md`.
+Related specs: `./00_provenance.md`, `./10_proofdown.md`, `./16_worker.md`, `./44_repo_contract.md`.
 
 ---
 
-## 0. Principles
+## 0. Purpose & Scope (framework‑agnostic)
 
-- Ship evidence, not claims: SPECS → CONTRACTS → TESTING ARTIFACTS → DOCUMENTED PROOF → CODE.
-- Every behavior change updates the spec/contract and regenerates artifacts.
-- Human reviewability is a first‑class outcome: front page Proofdown must clearly present what changed and why it’s correct.
-
----
-
-## 1. What you must produce (minimum)
-
-- Updated specs/contracts when behavior changes (e.g., `.specs/` files and component grammar if relevant).
-- Test artifacts:
-  - `tests-summary` (render `summary:test`)
-  - `coverage` (render `table:coverage`)
-  - `failures` (render `markdown`) if failures exist
-- Front page Proofdown at `ci/front_page.pml` referencing artifacts by `id`.
-- `.provenance/manifest.json` and `.provenance/manifest.json.sig` with SHA‑256 per artifact and signed manifest.
+- Use Provenance without changing your language, test framework, or CI system.
+- Your goal is to emit verifiable testing evidence and a signed manifest so a Provenance mirror can safely render it.
+- Principle: ship evidence, not claims → SPECS → CONTRACTS → TEST ARTIFACTS → PROOF PAGE → CODE.
+- Human reviewability: the front page (Proofdown) summarizes KPIs and links to details; all links resolve only to verified artifacts.
 
 ---
 
-## 2. IDE assistant prompt (template)
+## 1. Required outputs (minimum, framework‑agnostic)
 
-Use this structured system/user prompt to guide IDE AIs toward provenance compliance.
+- Test artifacts (recommended paths — adjust for your repo):
+  - `tests-summary` (render `summary:test`) → `ci/tests/summary.json`
+    - Shape: `{ "total": <int>, "passed": <int>, "failed": <int>, "duration_seconds": <number> }`
+  - `coverage` (render `table:coverage`) → `ci/coverage/coverage.json`
+    - Shape: `{ "total": { "pct": <number> }, "files": [ { "path": "<file>", "pct": <number> } ] }`
+  - `failures` (optional; render `markdown`) → `ci/tests/failures.md`
+- Front page Proofdown → `ci/front_page.pml`
+  - Use only whitelisted components; reference artifacts by `id` (not by path).
+- Signed manifest → `.provenance/manifest.json` and `.provenance/manifest.json.sig`
+  - Every artifact listed with `id`, `title`, `path`, `media_type`, `render`, `sha256` (hex, lowercase).
+  - Signature: Ed25519 over canonical JSON bytes (sorted keys, UTF‑8, `\n` newlines), signature stored as Base64 in `.sig`.
+
+---
+
+## 2. IDE assistant prompt (copy/paste)
+
+Use the following add‑on prompt with your IDE AI. It does not change frameworks; it only instructs how to emit Provenance outputs.
 
 ```
-System: You are an AI software engineer working in a provenance‑first repository. Your goal is to produce verifiable evidence for any code you change. Follow the priority: SPECS → CONTRACTS → TESTING ARTIFACTS → DOCUMENTED PROOF → CODE. Do not ship changes without updated artifacts and a Proofdown front page that presents them.
+You are integrating this repository with Provenance (artifact‑first mirror). Do not change our language, test framework, or CI.
+
+Your job is to ensure the repo emits and publishes:
+1) Testing artifacts produced by our existing tests:
+   - tests summary JSON (id: tests-summary, render: summary:test)
+   - coverage JSON (id: coverage, render: table:coverage)
+   - failures.md (optional; id: failures, render: markdown)
+2) A front page at ci/front_page.pml using only whitelisted components and referencing artifacts by id.
+3) A signed manifest at .provenance/manifest.json with sha256 for each artifact, plus .provenance/manifest.json.sig.
 
 Rules:
-- Update `.specs/*` documents for behavior changes.
-- Add/maintain tests; emit `tests-summary`, `coverage`, and `failures` artifacts.
-- Author `ci/front_page.pml` in Proofdown to present the artifacts (use `artifact.*` components and `repo:` snippets for critical paths).
-- Ensure `.provenance/manifest.json` lists all artifacts with `sha256` and is signed; produce `.provenance/manifest.json.sig`.
-- Link all repo code snippets/paths commit‑pinned (no unverified fetches).
-- Run CI gates locally (schema, canonicalization, signature, digest, Proofdown parse/lint).
-- Provide README badges pointing to `/badge/*` endpoints.
+- Manifest is canonicalized JSON (sorted keys, UTF‑8, \n newlines) signed with Ed25519; .sig stores Base64 signature.
+- Only resources listed in the manifest may be rendered/linked. Verify artifact SHA‑256 before use.
+- Outputs must be deterministic (no timestamps/random order). No unverified external fetches.
+- Publish manifest + signature + artifacts at a commit‑pinned URL.
 
-Deliverables:
-- A PR that passes all provenance gates and links to the Worker mirror URL showing the verified proof page for the commit.
+Outcome: a PR that includes the new/updated artifacts, Proofdown front page, signed manifest, and instructions/CI to publish them.
 ```
 
 ---
 
-## 3. Developer workflow
+## 3. Publishing & CI (non‑prescriptive)
 
-1) Make the change behind a spec/contract update.
-2) Add/adjust tests; run them; collect outputs.
-3) Update `ci/front_page.pml` to include summaries, coverage, failures, and code snippets for critical paths.
-4) Generate `.provenance/manifest.json` with SHA‑256 per artifact and sign it (produce `.provenance/manifest.json.sig`).
-5) Publish artifacts to the commit‑pinned location (or ensure CI does); verify locally using the same signature key pair.
-6) Open a PR with:
-   - Links to `/` and key `/a/{id}` pages.
-   - README badges (or confirm they already exist).
-7) Address lints and fix any verification errors.
+Use your existing test/coverage jobs. Add the following steps:
+1) Persist test artifacts (summary.json, coverage.json, optional failures.md) at stable paths.
+2) Compute SHA‑256 for each artifact and update `.provenance/manifest.json` accordingly.
+3) Canonicalize the manifest and sign with Ed25519; write Base64 signature to `.provenance/manifest.json.sig`.
+4) Publish manifest, signature, and artifacts to a commit‑pinned location (e.g., GitHub Raw for the commit SHA, or an equivalent static snapshot).
+5) Treat verification failures (manifest sig or artifact digest) as CI errors.
 
 ---
 
 ## 4. Acceptance gates (CI)
 
-- Index schema validation + canonicalization check.
-- Ed25519 signature verification.
-- SHA‑256 digest verification for all artifacts.
-- Proofdown parse/lint; unknown components = error.
-- Renderer coverage: `summary:test`, `table:coverage`, `markdown` at minimum.
-- Optional: thresholds (e.g., coverage ≥ 80%).
+- Canonicalization + Ed25519 signature verification for the manifest.
+- SHA‑256 digest verification for every listed artifact before rendering/linking.
+- Proofdown parse/lint; unknown components/attributes are hard errors.
+- Supported viewers (Provenance minimum): `markdown`, `json`, `table:coverage`, `summary:test`, `image`.
+- Deterministic outputs (repeatable builds yield identical bytes for equivalent inputs).
+- Optional: coverage thresholds (e.g., ≥ 80%).
 
 PR must include
 
@@ -93,13 +99,12 @@ PR must include
 ## 6. Examples
 
 - Add a feature with new tests:
-  - Update `.specs/` with the new behavior.
-  - Update tests; emit new `tests-summary`/`coverage`.
-  - Add a new section to `ci/front_page.pml` showing KPIs and a `<repo.code/>` snippet of the changed function.
-  - Regenerate and sign `.provenance/manifest.json`.
+  - Emit/refresh `tests-summary` and `coverage` artifacts.
+  - Update `ci/front_page.pml` to present new KPIs and link to details.
+  - Update `.provenance/manifest.json` sha256 values, re‑canonicalize, and re‑sign.
 
 - Fix a bug:
-  - Add a failing test first; capture failure evidence; then fix and show delta in Proofdown with a `repo.diff` (if bundles enabled).
+  - Capture failing evidence (e.g., failures.md); after fix, show delta via updated artifacts.
 
 ---
 
@@ -119,5 +124,5 @@ PR must include
   - Build artifacts and compute SHA‑256
   - Canonicalize and sign `.provenance/manifest.json`
   - Lint Proofdown
-  - Validate schema
+  - Validate manifest/inputs as appropriate for your stack
 - Provide a dev `wrangler.toml` and Miniflare config for local verification.

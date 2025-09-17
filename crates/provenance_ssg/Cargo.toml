@@ -18,3 +18,7 @@ percent-encoding = "2"
 sha2 = "0.10"
 hex = "0.4"
 regex = "1"
+manifest_contract = { path = "../manifest_contract" }
+renderers = { path = "../renderers" }
+badges = { path = "../badges" }
+proofdown_parser = { path = "../proofdown_parser" }
