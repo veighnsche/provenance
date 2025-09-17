@@ -29,3 +29,14 @@ proofdown_parser = { path = "../proofdown_parser/crates/proofdown_parser", optio
  # Gate all Proofdown parsing behind this feature; default build uses fallback rendering.
  external_pml = ["proofdown_parser"]
  default = []
+ bdd = []
+
+[dev-dependencies]
+bdd_harness = { path = "../bdd_harness" }
+regex = "1"
+
+[[test]]
+name = "bdd"
+path = "tests/bdd_main.rs"
+harness = false
+required-features = ["bdd"]

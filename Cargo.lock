@@ -192,6 +192,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "55248b47b0caf0546f7988906588779981c43bb1bc9d0c44087278f80cdb44ba"
 
 [[package]]
+name = "bdd_harness"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "regex",
+ "serde_json",
+]
+
+[[package]]
 name = "bit-set"
 version = "0.5.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1422,10 +1431,12 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "base64 0.22.1",
+ "bdd_harness",
  "dunce",
  "ed25519-dalek",
  "hex",
  "jsonschema",
+ "regex",
  "serde",
  "serde_json",
 ]
@@ -1717,11 +1728,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "proofdown_ast"
+version = "0.1.0"
+dependencies = [
+ "serde",
+]
+
+[[package]]
 name = "proofdown_parser"
 version = "0.1.0"
 dependencies = [
- "anyhow",
- "serde",
+ "proofdown_ast",
+ "serde_json",
 ]
 
 [[package]]
@@ -1730,6 +1748,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "badges",
+ "bdd_harness",
  "clap",
  "dioxus",
  "dioxus-ssr",
@@ -1847,7 +1866,9 @@ name = "renderers"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "bdd_harness",
  "pulldown-cmark",
+ "regex",
  "serde",
  "serde_json",
 ]
