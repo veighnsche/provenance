@@ -1,229 +1,131 @@
-# TODO — Provenance v1 Compliance Backlog
+# TODO — Next 4 Weeks Execution Plan (Spec-First, Artifact-First)
 
-This backlog translates the specs in `.specs/` into a granular, actionable plan to reach v1 compliance and be fully tested. Keep this document updated as tasks are completed.
-
-> WARNING: External Submodule — `crates/proofdown_parser`
+> IMPORTANT: External Submodule — `crates/proofdown_parser`
 >
 > The Proofdown parser is maintained by external consultants in a nested workspace (git submodule).
-> Do NOT modify parser code in this repository. Propose changes in the submodule repository and
-> update the submodule pointer here. In this workspace, only integration wiring/feature gating
-> should be changed.
+> Do NOT modify parser code in this repository. Propose changes in the submodule repo and update the
+> submodule pointer here. In this workspace, only integration wiring/feature gating should be changed.
 >
-> Path: `crates/proofdown_parser/` • Feature flag in SSG: `external_pml`
-
-Specs references for this plan:
-
-- `.specs/00_provenance.md`
-- `.specs/10_proofdown.md`
-- `.specs/12_canonicalization.md`
-- `.specs/14_signing.md`
-- `.specs/16_worker.md`
-- `.specs/18_workspace.md`
-- `.specs/20_testing_and_tiers.md`
-- `.specs/22_crate_minimums.md`
-- `.specs/40_accessibility.md`
-- `.specs/42_human_contract.md`
-- `.specs/44_repo_contract.md`
-- `.specs/46_llm_developer_contract.md`
-
-## Execution Order (Phased)
-
-1) Repo bootstrap and examples
-2) `manifest_contract` (schema + canonicalize + verify)
-3) `proofdown_parser` and `renderers`
-4) `provenance_ssg` integration, truncation, determinism
-5) `badges` crate and SSG badge outputs
-6) BDD harness and feature step implementations
-7) Worker runtime (Cloudflare) and WASM integration
-8) Accessibility checks
-9) CI gates and determinism
-10) Docs/templates polish
+> Path: `crates/proofdown_parser/` • SSG feature flag: `external_pml`
 
 ---
 
-## Repository & Examples
+## Guiding Principles
 
-- [x] Create missing crates declared in `Cargo.toml`
-  - [x] `crates/renderers/`
-  - [x] `crates/badges/`
-- [ ] Ensure canonical crate layout per `.specs/22_crate_minimums.md`
-  - [ ] Add `README.md`, `CHANGELOG.md`, `.provenance/`, `ci/`, `.specs/` to each crate
-- [x] Prepare example Ed25519 test keys for local tests (non-secret)
-  - [x] Provide public test key in repo for verification
-  - [x] Private test key used only by local scripts (exclude from VCS)
-- [x] Add script: compute SHA-256 for artifacts and update manifest
-  - [x] Input: repo root + manifest path
-  - [x] Output: updated `sha256` fields
-- [x] Add script/CLI: canonicalize and sign `.provenance/manifest.json` (Ed25519 Base64)
-  - [x] Inputs: manifest path, private key
-  - [x] Output: `.provenance/manifest.json.sig`
-- [x] Update `examples/minimal/` with real SHA-256 values in `.provenance/manifest.json`
-- [x] Generate real Base64 signature for `examples/minimal/.provenance/manifest.json.sig`
-- [ ] Add a large JSON fixture for truncation tests (e.g., 5–10 MB) under `examples/minimal/ci/tests/`
-- [x] Ensure `examples/minimal/ci/tests/failures.md` exists and is non-empty
+- Specs → Contracts → Tests/Artifacts → Documented Proof → Code (in that order)
+- Determinism: stable ordering, canonicalized formats, no time/IO randomness
+- Security: verify manifest signature, verify artifact digests, strict viewer mapping
+- CI one‑button: `cargo xtask check-all`, `cargo xtask test-all`, feature-gated integration build
 
 ---
 
-## `manifest_contract` crate
+## Week 1 — Contracts, Canonicalization, Test Fixtures
 
-- [x] Expose `Manifest`, `Artifact`, `WorkflowRun`, `FrontPage` types (single source of truth)
-- [x] Implement `load_manifest(path)` with clear error context
-- [x] JSON Schema validation using `schemas/manifest.schema.json`
-  - [x] Validate required fields, formats, allowed `render` values
-- [x] `canonicalize(manifest) -> Vec<u8>`
-  - [x] Sort keys recursively; UTF-8, `\n`; stable JSON serialization
-- [x] `ed25519_verify(canonical_bytes, base64_sig, pubkey_b64_or_hex)`
-- [x] Detailed validation errors
-  - [x] Unique artifact ids
-  - [x] Path normalization (reject `..`, enforce repo-relative)
-  - [x] Allowed `render` values per `.specs/00_provenance.md#8-renderers` + schema
-- [ ] Unit tests + golden test vectors
-  - [x] Canonicalization vectors from `.specs/12_canonicalization.md`
-  - [ ] Schema validation success/failure cases
+- Manifest contract hardening (crate: `manifest_contract`)
+  - [ ] Add JSON Schema success/failure test cases (good/bad fixtures)
+  - [ ] Canonicalization golden test (bytes match across runs)
+  - [ ] Ed25519 verify path test (public test key in repo)
+- SSG test fixtures
+  - [ ] Add large JSON fixture (5–10 MB) under `examples/minimal/ci/tests/` for truncation
+  - [ ] Expand `failures.md` to include representative edge cases (UTF‑8, long lines)
+- CI & tooling
+  - [ ] Ensure GitHub CI checks out submodules, runs `cargo xtask check-all` and `test-all`
+  - [ ] Add `cargo tree -d` step (optional) to detect duplicate deps
+- Docs
+  - [ ] Cross‑link contracts and specs in READMEs; finalize external‑ownership warnings
 
----
+Exit criteria
 
-## `proofdown_parser` crate
-
-- [x] Create `src/lib.rs` with:
-  - [x] AST structs (document/blocks/inlines/components)
-  - [ ] Error types with line/column
-- [ ] Tokenizer + parser for:
-  - [ ] Headings `#..####`, paragraphs, lists, code fences
-  - [ ] Inline code
-- [ ] Component grammar parsing for:
-  - [ ] Structural: `grid`, `section`, `card`, `tabs`, `gallery`
-  - [ ] Artifact viewers: `artifact.summary`, `artifact.table`, `artifact.json`, `artifact.markdown`, `artifact.image`, `artifact.viewer`, `artifact.link`
-- [ ] Unknown components/attributes as hard errors
-- [ ] Link macro `[[...]]`:
-  - [ ] `a:`, `repo:`, `src:`, `doc:`, `gh:`, `ci:`, `sym:` and path shorthand semantics
-- [ ] Includes with depth limit and cycle detection
-- [ ] Enforce attribute bounds & types (see `.specs/10_proofdown.md#7-attributes-amp-types`)
-- [ ] Optional: WASM bindings via `wasm-bindgen` for Worker
-- [ ] Golden AST tests for examples in `.specs/10_proofdown.md`
+- `cargo xtask check-all` and `test-all` green
+- New fixtures present; schema and canonicalization tests pass
 
 ---
 
-## `renderers` crate
+## Week 2 — Proofdown Integration Surface + Renderers Golden Tests
 
-- [x] Pure, deterministic render helpers (no IO):
-  - [x] `markdown` (safe)
-  - [x] `json` (pretty, escaped)
-  - [x] `table:coverage`
-  - [x] `summary:test`
-  - [x] `image`
-- [ ] Structural layout RSX/HTML (`grid/section/card/tabs/gallery`)
-- [ ] HTML sanitization for all text output
-- [ ] Accessibility semantics: headings `h1..h4`, `<nav>`, tables with `<thead>`, `<tbody>`, `scope`
-- [ ] Golden RSX/HTML tests for example inputs
+- Proofdown integration (without editing submodule code)
+  - [ ] Keep `external_pml` off by default; add an integration job that enables it
+  - [ ] Add golden AST JSON fixtures (exported from submodule examples) for a few front pages
+  - [ ] Add SSG-side parser integration test that loads AST JSON and exercises renderer mapping
+- Renderers (crate: `renderers`)
+  - [ ] Golden tests: `markdown`, `json` (pretty/escaped), `table:coverage`, `summary:test`, `image`
+  - [ ] Truncation policy tests using the large JSON fixture
+- Badges (crate: `badges`)
+  - [ ] Schema-based validation of Shields JSON shapes; tests for `provenance`, `tests`, `coverage`
 
----
+Exit criteria
 
-## `badges` crate
-
-- [x] Compute Shields JSON for `provenance`, `tests`, `coverage`
-  - [ ] Schema: `schemas/badge.schema.json`
-- [x] Error badges for missing/invalid artifacts (`message = error`, `color = red`)
-- [x] Minimal SVG generation with thresholds/colors (e.g., coverage thresholds)
-- [ ] Schema tests for JSON badges
+- Renderer golden tests in place and stable
+- SSG can render index using precomputed AST JSON (when `external_pml` is off)
 
 ---
 
-## `provenance_ssg` crate
+## Week 3 — Deterministic SSG Output, Accessibility, Fragments
 
-- [x] Replace local manifest structs/usages with `manifest_contract` types
-- [x] Add `--verify-manifest` flag:
-  - [x] Schema validation
-  - [x] Canonicalize + Ed25519 verify (fail build on mismatch)
-- [x] Parse front page `ci/front_page.pml` via `proofdown_parser`
-- [x] Render Proofdown AST via `renderers` with verified data context
-  - [x] Resolve `<artifact.*>` by `id` only; unknown `id` -> error
-- [x] Truncation policy for large artifacts (configurable limits)
-  - [x] Show truncation banner + verified `Download` link
-- [ ] Deterministic output guarantees
-  - [ ] Stable ordering; fixed float formatting
-- [x] Write static badges:
-  - [x] `site/badge/provenance.json` and `.svg`
-  - [x] `site/badge/tests.json` and `.svg`
-  - [x] `site/badge/coverage.json` and `.svg`
-- [x] Strict viewer mapping for per-artifact pages (reject unknown `render`)
-- [ ] Accessibility markup in generated HTML
-- [ ] Golden tests (`index.html`, `a/*/index.html`)
+- SSG determinism (crate: `provenance_ssg`)
+  - [ ] Stable ordering for artifacts/nav, pinned float formatting, stable HTML
+  - [ ] Golden HTML tests for `/index.html` and a couple of `/a/{id}` pages
+- Accessibility
+  - [ ] Add headings/landmarks/table semantics; alt text checks in renderers
+- Fragments & downloads
+  - [ ] Implement `/fragment/{artifact_id}` for heavy payloads; verified download links
+
+Exit criteria
+
+- Reproducible builds: golden HTML snapshots pass
+- Basic accessibility checks pass in CI
 
 ---
 
-## BDD Harness & Steps (`features/*.feature`)
+## Week 4 — BDD Harness, Feature Gates, Release Prep
 
-- [ ] Add Rust cucumber test runner for repo-level features
-- [ ] Steps: manifest schema validation + unique id check
-- [ ] Steps: canonicalization byte equality (shuffled keys)
-- [ ] Steps: signature verification success/failure
-- [ ] Steps: run SSG build and assert files exist and contain expected strings
-- [ ] Steps: deterministic build (build twice and byte-compare)
-- [ ] Steps: truncation notice for large artifacts
-- [ ] Steps: Proofdown unknown component -> error
-- [ ] Steps: badges JSON shape and values
+- BDD (features/)
+  - [ ] Add a minimal Rust test harness that executes `features/*.feature` scenarios (smoke subset)
+  - [ ] Scenarios: signature failure, digest mismatch, missing artifact, basic Proofdown front page
+- Feature gates & docs
+  - [ ] Document `external_pml` usage and integration workflow with the submodule
+  - [ ] Document how to promote `proofdown_ast` to a published crate (if/when ready)
+- Release prep
+  - [ ] Version tagging plan; changelog scaffolding in each crate
+  - [ ] CI: release job templates (draft)
 
----
+Exit criteria
 
-## Worker (Cloudflare)
-
-- [ ] Create `worker/` with `wrangler.toml` and `src/index.ts`
-- [ ] Env bindings:
-  - [ ] `INDEX_PUBKEY_ED25519`, `RAW_BASE_URL`, `INDEX_PATH`, `INDEX_SIG_PATH`, `CACHE_TTL_SECONDS`, `FEATURES`
-- [ ] Implement routes:
-  - [ ] `/`, `/fragment/:id`, `/a/:id`, `/download/:id`, `/health`, `/robots.txt`
-- [ ] Verify manifest signature (WebCrypto); lazily verify artifact SHA-256 on stream
-- [ ] Integrate Proofdown WASM parser; render via `renderers` (WASM or TS glue)
-- [ ] Badges: `/badge/:kind.json` and `/badge/:kind.svg` with ETag/Cache-Control
-- [ ] Strict fetch policy under `RAW_BASE_URL`; path normalization; strong CSP headers
-- [ ] ETag formulas and conditional requests
-- [ ] Error pages with HTTP 409 for verification failures
+- BDD smoke tests run in CI
+- Clear documented path to enable `external_pml` and to update submodule pointer
 
 ---
 
-## Accessibility & UX (`.specs/40_accessibility.md`)
+## Stretch (As Time Allows)
 
-- [ ] Automated a11y checks (axe/pa11y) for `site/index.html` and representative `a/*` pages
-- [ ] Verify keyboard navigation and focus styles in generated HTML
-- [ ] Tables use `<thead>`, `<tbody>`, and `scope`
-- [ ] JSON/fragment viewers operable via keyboard (expand/collapse)
-- [ ] Images require `alt` text; decorative images have empty `alt`
+- Worker PoC (Cloudflare): skeleton routes `/`, `/fragment/{id}`, `/a/{id}` using static inputs
+- Repo viewers planning (spec refresh only): `repo.code`, `repo.tree`, `repo.diff` constraints
+- WASM binder exploration notes for `proofdown_parser`
 
 ---
 
-## CI & Determinism
+## Risks & Mitigations
 
-- [ ] GitHub Actions workflow
-  - [ ] `cargo fmt` / `clippy` / `build` for all crates
-  - [ ] Unit & integration tests
-  - [ ] BDD features
-  - [ ] Manifest schema + canonicalization + signature verify for `examples/minimal/` and crate manifests
-- [ ] Determinism gate: build twice and diff checksums of key outputs
-- [ ] Provenance checks for examples and crate manifests
-
----
-
-## Documentation & Templates
-
-- [ ] Top-level `README.md`: project overview, how to run SSG & Worker locally, how to generate/sign manifests
-- [ ] Per-crate `README.md` and `.specs` stubs:
-  - [ ] `00_goals.md`, `01_plan.md`, `02_api.md`, `03_testing.md`
-- [ ] Add `templates/crate/*` starter files referenced by `.specs/22_crate_minimums.md`
+- External submodule velocity misalignment
+  - Mitigation: keep SSG able to run with `external_pml` disabled using AST JSON fixtures
+- Non-determinism sneaks in
+  - Mitigation: golden tests for AST/HTML, formatter pins, explicit ordering
+- CI flakiness with large fixtures
+  - Mitigation: fragments route, truncation banners, Worker cache notes
 
 ---
 
-## Definition of Done (v1)
+## Handy Commands
 
-- [ ] Signed manifest verified; per-artifact SHA-256 verified
-- [ ] Front page Proofdown parsed/rendered with whitelisted components; unknowns error
-- [ ] Minimum viewers implemented: `markdown`, `json`, `table:coverage`, `summary:test`, `image`
-- [ ] Deterministic outputs; golden tests for pages and badges
-- [ ] Badge outputs/logic validated (JSON + SVG)
-- [ ] Clear error states (signature/digest failures) with appropriate HTTP codes (Worker)
-- [ ] Baseline accessibility checks pass
+- Outer + nested checks: `cargo xtask check-all`
+- Outer + nested tests: `cargo xtask test-all`
+- Integration build (SSG with parser): `cargo xtask ci-integration-build`
+- Build example site: `cargo run -p provenance_ssg -- --root examples/minimal --out site`
 
-Notes:
+---
 
-- Artifact ids, paths, media types, and `render` hints must conform to schema in `schemas/manifest.schema.json` and rules in `.specs/44_repo_contract.md`.
-- Only resources listed in the verified manifest may be fetched or rendered.
+## References
+
+- Specs: `/.specs/00_provenance.md`, `/.specs/18_workspace.md`
+- Parser contract: `crates/proofdown_parser/.specs/10_contract_with_provenance_ssg.md`
+- Nested workspace plan: `crates/proofdown_parser/.plans/00_workspace_plan.md`

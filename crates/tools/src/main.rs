@@ -18,6 +18,31 @@ struct Cli {
     cmd: Cmd,
 }
 
+fn gen_large_json(out: &Path, size_mb: u64) -> Result<()> {
+    // Generate a JSON array of objects until reaching approx size
+    let target_bytes: u64 = size_mb * 1024 * 1024;
+    let mut items = Vec::new();
+    let mut bytes: u64 = 2; // for [ ]
+    let mut i: u64 = 0;
+    while bytes < target_bytes {
+        let obj = serde_json::json!({
+            "i": i,
+            "path": format!("file_{}", i),
+            "message": "x".repeat(256),
+            "numbers": [1,2,3,4,5,6,7,8,9,0],
+        });
+        let s = serde_json::to_string(&obj)?;
+        bytes += s.len() as u64 + 1; // + comma
+        items.push(obj);
+        i += 1;
+    }
+    let txt = serde_json::to_string_pretty(&items)? + "\n";
+    std::fs::create_dir_all(out.parent().unwrap_or_else(|| Path::new(".")))?;
+    std::fs::write(out, txt)?;
+    println!("Wrote ~{} MB to {}", size_mb, out.display());
+    Ok(())
+}
+
 #[derive(Debug, Subcommand)]
 enum Cmd {
     /// Compute SHA-256 for artifacts in manifest and update fields in-place
@@ -53,6 +78,15 @@ enum Cmd {
         #[arg(long)]
         pubkey_out: PathBuf,
     },
+    /// Generate a large JSON file for truncation tests
+    GenLargeJson {
+        /// Output path for JSON file
+        #[arg(long)]
+        out: PathBuf,
+        /// Approximate size in megabytes
+        #[arg(long, default_value_t = 5u64)]
+        size_mb: u64,
+    },
 }
 
 fn main() -> Result<()> {
@@ -61,6 +95,7 @@ fn main() -> Result<()> {
         Cmd::UpdateSha { root, manifest } => update_sha(&root, &manifest),
         Cmd::Sign { manifest, privkey, sig_out, pubkey_out } => sign_manifest(&manifest, &privkey, sig_out.as_ref(), pubkey_out.as_ref()),
         Cmd::GenTestKey { privkey_out, pubkey_out } => gen_test_key(&privkey_out, &pubkey_out),
+        Cmd::GenLargeJson { out, size_mb } => gen_large_json(&out, size_mb),
     }
 }
 

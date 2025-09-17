@@ -1,3 +1,6 @@
+/// THIS FILE IS GETTING PRETTY BIG
+/// PLEASE MODULARIZE IN THE NEXT REFACTOR
+
 mod render;
 
 use anyhow::{anyhow, Context, Result};
@@ -15,7 +18,7 @@ use std::fs;
 use std::io::Read;
 use std::path::{Path, PathBuf};
 
-#[derive(Parser, Debug)]
+#[derive(Parser, Debug, Clone)]
 #[command(name = "provenance-ssg", version, about = "Static site generator for Provenance (read-only)")]
 struct Args {
     /// Project root directory (where CI artifacts and .provenance live)
@@ -51,8 +54,65 @@ struct Args {
     truncate_inline_bytes: usize,
 }
 
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::time::{SystemTime, UNIX_EPOCH};
+
+    fn unique_out() -> PathBuf {
+        let mut p = std::env::temp_dir();
+        let nanos = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_nanos();
+        p.push(format!("prov-ssg-test-{}", nanos));
+        p
+    }
+
+    #[test]
+    fn generates_site_minimal() {
+        let out = unique_out();
+        let crate_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+        let repo_root = crate_dir.parent().and_then(|p| p.parent()).unwrap().to_path_buf();
+        let args = Args {
+            root: repo_root.join("examples/minimal"),
+            manifest: PathBuf::from(".provenance/manifest.json"),
+            out: out.clone(),
+            copy_assets: true,
+            verify_manifest: false,
+            pubkey: None,
+            schema_path: Some(repo_root.join("schemas/manifest.schema.json")),
+            truncate_inline_bytes: 1_000_000,
+        };
+        run_with_args(args).expect("site generation succeeds");
+        assert!(out.join("index.html").is_file());
+        assert!(out.join("a").join("tests-summary").join("index.html").is_file());
+    }
+
+    #[test]
+    fn truncates_inline_when_limit_small() {
+        let out = unique_out();
+        let crate_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+        let repo_root = crate_dir.parent().and_then(|p| p.parent()).unwrap().to_path_buf();
+        let args = Args {
+            root: repo_root.join("examples/minimal"),
+            manifest: PathBuf::from(".provenance/manifest.json"),
+            out: out.clone(),
+            copy_assets: true,
+            verify_manifest: false,
+            pubkey: None,
+            schema_path: Some(repo_root.join("schemas/manifest.schema.json")),
+            truncate_inline_bytes: 1, // force truncation for markdown/json
+        };
+        run_with_args(args).expect("site generation succeeds");
+        let failures_html = std::fs::read_to_string(out.join("a").join("failures").join("index.html")).expect("read failures page");
+        assert!(failures_html.contains("Truncated"));
+    }
+}
+
 fn main() -> Result<()> {
     let args = Args::parse();
+    run_with_args(args)
+}
+
+fn run_with_args(args: Args) -> Result<()> {
     fs::create_dir_all(&args.out).context("create output dir")?;
 
     // Load manifest (typed + raw JSON)
@@ -252,7 +312,7 @@ impl ArtifactViewExt {
     fn from(artifact: mc::Artifact, verified: bool, download_href: String, digest_hex: Option<String>) -> Self {
         Self { artifact, verified, download_href, digest_hex }
     }
-    fn as_view(&self) -> render::ArtifactView {
+    fn as_view(&self) -> render::ArtifactView<'_> {
         render::ArtifactView {
             id: &self.artifact.id,
             title: &self.artifact.title,
