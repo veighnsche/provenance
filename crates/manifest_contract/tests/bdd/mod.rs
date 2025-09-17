@@ -1,3 +1,5 @@
+#![cfg(not(feature = "bdd"))]
+// Legacy bdd_harness-driven tests. Disabled when running with feature `bdd` (cucumber-based).
 mod steps_manifest;
 mod steps_signing;
 

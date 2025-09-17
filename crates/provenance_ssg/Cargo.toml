@@ -34,6 +34,8 @@ proofdown_parser = { path = "../proofdown_parser/crates/proofdown_parser", optio
 [dev-dependencies]
 bdd_harness = { path = "../bdd_harness" }
 regex = "1"
+cucumber = { version = "0.20", features = ["macros"] }
+tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
 
 [[test]]
 name = "bdd"

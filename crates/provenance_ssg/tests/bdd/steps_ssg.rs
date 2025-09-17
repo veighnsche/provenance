@@ -6,19 +6,91 @@ use std::path::{Path, PathBuf};
 pub fn registry() -> Vec<Step> {
     vec![
         step(r#"a valid, signed manifest and verified artifacts for tests and coverage"#, given_valid_signed_manifest),
-        step(r#"the repo root is "([^"]+)""#, given_repo_root),
-        step(r#"the manifest path is "([^"]+)""#, given_manifest_path),
-        step(r#"the JSON schema path is "([^"]+)""#, given_schema_path),
-        step(r#"file "([^"]+)" exists"#, then_file_exists_under_repo),
-        step(r#"I run the SSG with output dir "([^"]+)""#, when_run_ssg_out),
-        step(r#"I run the SSG with output dir "([^"]+)" and truncate inline bytes to (\d+)"#, when_run_ssg_out_trunc),
+        step(r#"the repo root is \"([^\"]+)\""#, given_repo_root),
+        step(r#"the manifest path is \"([^\"]+)\""#, given_manifest_path),
+        step(r#"the JSON schema path is \"([^\"]+)\""#, given_schema_path),
+        step(r#"file \"([^\"]+)\" exists"#, then_file_exists_under_repo),
+        step(r#"I run the SSG with output dir \"([^\"]+)\""#, when_run_ssg_out),
+        step(r#"I run the SSG with output dir \"([^\"]+)\" and truncate inline bytes to (\d+)"#, when_run_ssg_out_trunc),
         step(r#"I generate badges"#, when_generate_badges),
-        step(r#"file "([^"]+)" should exist"#, then_file_exists_under_out),
-        step(r#"HTML at "([^"]+)" should contain "([^"]+)""#, then_html_contains_under_out),
+        step(r#"file \"([^\"]+)\" should exist"#, then_file_exists_under_out),
+        step(r#"HTML at \"([^\"]+)\" should contain \"([^\"]+)\""#, then_html_contains_under_out),
         step(r#"the JSON has schemaVersion (\d+)"#, then_badge_schema_version),
-        step(r#"the JSON message contains "([^"]+)""#, then_badge_message_contains),
-        step(r#"the JSON message matches "([^"]+)""#, then_badge_message_matches),
+        step(r#"the JSON message contains \"([^\"]+)\""#, then_badge_message_contains),
+        step(r#"the JSON message matches \"([^\"]+)\""#, then_badge_message_matches),
+        step(r#"the coverage artifact is missing"#, given_coverage_artifact_missing),
+        step(r#"the JSON badge for coverage has message \"([^\"]+)\""#, then_coverage_badge_message_is),
+        step(r#"the JSON badge for coverage uses color \"([^\"]+)\""#, then_coverage_badge_color_is),
     ]
+}
+
+fn given_valid_signed_manifest(state: &mut State, _caps: &regex::Captures) -> Result<()> {
+    // Point repo_root to the provided minimal example which contains a signed manifest
+    // and verified artifacts for tests and coverage.
+    let base = repo_root(state);
+    let p = base.join("examples/minimal");
+    // Sanity checks
+    for rel in [
+        ".provenance/manifest.json",
+        ".provenance/manifest.json.sig",
+        ".provenance/public_test_ed25519.key.b64",
+        "ci/tests/summary.json",
+        "ci/coverage/coverage.json",
+    ] {
+        let fp = p.join(rel);
+        if !fp.is_file() { return Err(anyhow!("missing required file: {}", fp.display())); }
+    }
+    state.set("repo_root", p.to_string_lossy());
+    // Default manifest path relative to repo_root
+    state.set("manifest_path", ".provenance/manifest.json");
+    Ok(())
+}
+
+fn given_coverage_artifact_missing(state: &mut State, _caps: &regex::Captures) -> Result<()> {
+    // Create a temporary copy of examples/minimal and remove the coverage artifact
+    let src = repo_root(state).join("examples/minimal");
+    if !src.is_dir() { return Err(anyhow!("source example not found: {}", src.display())); }
+    let dst = temp_out();
+    // Shallow recursive copy
+    copy_tree(&src, &dst)?;
+    let cov = dst.join("ci/coverage/coverage.json");
+    if cov.exists() { std::fs::remove_file(&cov).map_err(|e| anyhow!("rm {}: {}", cov.display(), e))?; }
+    state.set("repo_root", dst.to_string_lossy());
+    state.set("manifest_path", ".provenance/manifest.json");
+    Ok(())
+}
+
+fn then_coverage_badge_message_is(state: &mut State, caps: &regex::Captures) -> Result<()> {
+    let want = caps.get(1).unwrap().as_str();
+    let out = PathBuf::from(state.get("out_dir").ok_or_else(|| anyhow!("out_dir not set"))?);
+    let p = out.join("badge/coverage.json");
+    let v: serde_json::Value = serde_json::from_str(&fs::read_to_string(&p)?)?;
+    let msg = v.get("message").and_then(|v| v.as_str()).unwrap_or("");
+    if msg == want { Ok(()) } else { Err(anyhow!("coverage badge message '{}' != '{}' in {}", msg, want, p.display())) }
+}
+
+fn then_coverage_badge_color_is(state: &mut State, caps: &regex::Captures) -> Result<()> {
+    let want = caps.get(1).unwrap().as_str();
+    let out = PathBuf::from(state.get("out_dir").ok_or_else(|| anyhow!("out_dir not set"))?);
+    let p = out.join("badge/coverage.json");
+    let v: serde_json::Value = serde_json::from_str(&fs::read_to_string(&p)?)?;
+    let color = v.get("color").and_then(|v| v.as_str()).unwrap_or("");
+    if color == want { Ok(()) } else { Err(anyhow!("coverage badge color '{}' != '{}' in {}", color, want, p.display())) }
+}
+
+fn copy_tree(src: &Path, dst: &Path) -> Result<()> {
+    for entry in walkdir::WalkDir::new(src) {
+        let ent = entry.map_err(|e| anyhow!("walk {}: {}", src.display(), e))?;
+        let rel = ent.path().strip_prefix(src).unwrap();
+        let out_path = dst.join(rel);
+        if ent.file_type().is_dir() {
+            std::fs::create_dir_all(&out_path)?;
+        } else if ent.file_type().is_file() {
+            if let Some(parent) = out_path.parent() { std::fs::create_dir_all(parent)?; }
+            std::fs::copy(ent.path(), &out_path).map_err(|e| anyhow!("copy {} -> {}: {}", ent.path().display(), out_path.display(), e))?;
+        }
+    }
+    Ok(())
 }
 
 fn step(pat: &str, f: fn(&mut State, &regex::Captures) -> Result<()>) -> Step { Step::new(pat, f).unwrap() }

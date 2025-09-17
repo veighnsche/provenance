@@ -24,3 +24,21 @@ Feature: Provenance Manifest validity and canonicalization
     Given I duplicate an artifact with the same id
     When I validate the manifest
     Then I see an error mentioning "id" and "unique"
+
+  Scenario: Artifact path must not escape repo root
+    Given I set the first artifact path to "../etc/passwd"
+    When I validate the manifest
+    Then the validation result is "error"
+    And the error contains "escapes root"
+
+  Scenario: Unknown render values are rejected
+    Given I set the first artifact render to "bogus"
+    When I validate the manifest
+    Then the validation result is "error"
+    And the error contains "unknown render"
+
+  Scenario: Invalid sha256 is rejected
+    Given I set the first artifact sha256 to "deadbeef"
+    When I validate the manifest
+    Then the validation result is "error"
+    And the error contains "invalid sha256"

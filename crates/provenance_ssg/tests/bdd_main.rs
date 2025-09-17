@@ -1,23 +1,37 @@
-// BDD entrypoint aligned with .docs/BDD_WIRING.md (harness = false)
-use bdd_harness::Runner;
+// BDD entrypoint with cucumber macros and async tokio main (harness = false)
+#[cfg(not(feature = "bdd"))]
+fn main() {}
 
-#[path = "bdd/steps_ssg.rs"] mod steps_ssg;
+#[cfg(feature = "bdd")]
+mod bdd_world;
+#[cfg(feature = "bdd")]
+mod steps;
+#[cfg(feature = "bdd")]
+use cucumber::World as _; // bring trait into scope for World::cucumber()
 
-fn repo_root() -> std::path::PathBuf {
-    // provenance_ssg/../.. is the workspace root
+#[cfg(feature = "bdd")]
+#[tokio::main(flavor = "multi_thread")]
+async fn main() {
     let crate_dir = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-    crate_dir.parent().and_then(|p| p.parent()).unwrap().to_path_buf()
-}
-
-fn main() {
-    let repo = repo_root();
-    let mut r = Runner::new(&repo);
-    r.add_steps(steps_ssg::registry());
+    let repo_root = crate_dir.parent().and_then(|p| p.parent()).unwrap().to_path_buf();
 
     if let Ok(fp) = std::env::var("PROVENANCE_BDD_FEATURE_PATH") {
-        r.run_feature_file(&fp).expect("feature run ok");
+        let p = std::path::PathBuf::from(fp);
+        let features = if p.is_absolute() { p } else { repo_root.join(p) };
+        bdd_world::World::cucumber()
+            .fail_on_skipped()
+            .run_and_exit(features)
+            .await;
     } else {
-        r.run_feature_file("features/ssg.feature").expect("ssg.feature passes");
-        r.run_feature_file("features/badges.feature").expect("badges.feature passes");
+        let list = [
+            repo_root.join("features/ssg.feature"),
+            repo_root.join("features/badges.feature"),
+        ];
+        for f in list {
+            bdd_world::World::cucumber()
+                .fail_on_skipped()
+                .run(f)
+                .await;
+        }
     }
 }

@@ -1,4 +1,5 @@
 use bdd_harness::{Step, State};
+use base64::Engine; // for STANDARD.encode()
 use anyhow::{anyhow, Result};
 use std::fs;
 use std::path::{Path, PathBuf};

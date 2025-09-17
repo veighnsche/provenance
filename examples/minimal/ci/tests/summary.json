@@ -2,5 +2,6 @@
   "total": 42,
   "passed": 41,
   "failed": 1,
-  "duration_seconds": 12.34
+  "duration_seconds": 12.34,
+  "note": "<>&"
 }
