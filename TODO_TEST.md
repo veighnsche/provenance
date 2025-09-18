@@ -3,6 +3,7 @@
 Status: In Progress v0.2 (cucumber macros wired across crates). This document enumerates granular Gherkin features, scenarios, steps, and their Rust step-function mappings for everything we own in this repo.
 
 Guiding rules
+
 - Deterministic: no network, no time-based behavior, stable ordering and formats.
 - Repo-root paths in tests use `CARGO_MANIFEST_DIR` to resolve `examples/minimal` and `schemas/`.
 - Favor golden fixtures (manifest JSON, AST JSON, HTML) to assert byte-for-byte where practical.
@@ -13,21 +14,21 @@ Guiding rules
 ## Directory layout (proposed)
 
 - `features/` (already present)
-  - `manifest.feature`
-  - `signing.feature`
-  - `proofdown_front_page.feature`
-  - `ssg.feature` (add)
-  - `renderers.feature` (add)
-  - `badges.feature`
-  - `tools.feature` (add)
+  - [x] `manifest.feature`
+  - [x] `signing.feature`
+  - [x] `proofdown_front_page.feature` (feature file exists; steps pending)
+  - [x] `ssg.feature`
+  - [x] `renderers.feature`
+  - [x] `badges.feature`
+  - [ ] `tools.feature` (pending)
 - `crates/*/tests/bdd/` (step definitions grouped by concern)
-  - `crates/manifest_contract/tests/bdd/steps_manifest.rs`
-  - `crates/manifest_contract/tests/bdd/steps_signing.rs`
-  - `crates/provenance_ssg/tests/bdd/steps_ssg.rs`
-  - `crates/renderers/tests/bdd/steps_renderers.rs`
-  - `crates/badges/tests/bdd/steps_badges.rs`
-  - `crates/tools/tests/bdd/steps_tools.rs`
-  - `crates/*/tests/bdd/mod.rs` to register steps
+  - [x] `crates/manifest_contract/tests/bdd/steps_manifest.rs`
+  - [x] `crates/manifest_contract/tests/bdd/steps_signing.rs`
+  - [x] `crates/provenance_ssg/tests/steps/ssg.rs` (path differs: tests/steps)
+  - [x] `crates/renderers/tests/bdd/steps_renderers.rs`
+  - [ ] `crates/badges/tests/bdd/steps_badges.rs` (covered via SSG steps)
+  - [ ] `crates/tools/tests/bdd/steps_tools.rs`
+  - [x] `crates/*/tests/bdd/mod.rs` to register steps (renderers, manifest_contract)
 - Per-crate Cucumber harness (in place)
   - Each crate defines `tests/bdd_main.rs` with an async tokio main using cucumber macros and a local `World` (see `crates/*/tests/bdd_world/mod.rs`).
   - Legacy `bdd_harness` remains only for `manifest_contract` behind `#[cfg(not(feature = "bdd"))]` and is not used when running with `--features bdd`.
@@ -62,6 +63,7 @@ Guiding rules
 ## Feature: manifest.feature (we own)
 
 Scenarios
+
 - Valid manifest passes schema and semantics
   - Given repo root → examples/minimal
   - Given manifest path `.provenance/manifest.json`
@@ -86,6 +88,7 @@ Scenarios
   - Expect failure `invalid sha256`
 
 Step functions
+
 - `steps_manifest.rs`
   - `when_load_manifest()` → wraps `manifest_contract::load_manifest`
   - `when_validate_schema()` → wraps `manifest_contract::validate_schema`
@@ -97,6 +100,7 @@ Step functions
 ## Feature: signing.feature (we own)
 
 Scenarios
+
 - Canonicalization stable and signature verifies
   - Given manifest & pubkey b64 (from examples)
   - When I canonicalize and verify signature (use `.sig`)
@@ -109,6 +113,7 @@ Scenarios
   - Expect verification fails
 
 Step functions
+
 - `steps_signing.rs`
   - `when_verify_signature()` → wraps `ed25519_verify`
   - Helpers to read `.sig` and pubkey files
@@ -118,6 +123,7 @@ Step functions
 ## Feature: ssg.feature (we own)
 
 Scenarios
+
 - Generate minimal site (feature off)
   - Given repo root examples/minimal
   - When I run the SSG with output dir TMP
@@ -132,6 +138,7 @@ Scenarios
   - And tests badge values match summary
 
 Step functions
+
 - `steps_ssg.rs`
   - `when_run_ssg(out, opts)` → uses `provenance_ssg::run_with_args`
   - `then_file_exists` & `then_html_contains` from `common`
@@ -141,6 +148,7 @@ Step functions
 ## Feature: renderers.feature (we own)
 
 Scenarios
+
 - Markdown renders headings and escapes ampersand
   - Render `ci/tests/failures.md` → contains `<h1>` and `&amp;`
 - JSON pretty view escapes `<>&`
@@ -151,6 +159,7 @@ Scenarios
   - `renderers::render_image` with a path and alt text → contains proper attrs
 
 Step functions
+
 - `steps_renderers.rs` call into `renderers::{render_markdown, render_json_pretty, render_coverage, render_image}`
 
 ---
@@ -158,6 +167,7 @@ Step functions
 ## Feature: badges.feature (we own)
 
 Scenarios
+
 - Provenance badge toggles by verification
   - With all artifacts verified → label `provenance`, message `verified`, color `brightgreen`
   - With mismatch → message `unverified`, color `red`
@@ -167,6 +177,7 @@ Scenarios
   - At 92.0% → `brightgreen`; at 0% → `lightgrey`
 
 Step functions
+
 - `steps_badges.rs` calls into `badges::{badge_provenance, badge_tests, badge_coverage}` and inspects JSON
 
 ---
@@ -174,6 +185,7 @@ Step functions
 ## Feature: tools.feature (we own)
 
 Scenarios
+
 - UpdateSha updates manifest `sha256` fields
   - Create temp copies of small fixture files and manifest
   - Run CLI `tools UpdateSha --root ... --manifest ...`
@@ -186,6 +198,7 @@ Scenarios
   - Assert file size ≥ requested size and JSON parses
 
 Step functions
+
 - `steps_tools.rs` invoke the `tools` binary (spawn) or factor helpers to call functions directly
 
 ---
@@ -193,6 +206,7 @@ Step functions
 ## Skeletons (illustrative)
 
 Example: step registration (inline test module)
+
 ```rust
 // crates/manifest_contract/tests/bdd/mod.rs
 mod steps_manifest;
@@ -208,6 +222,7 @@ fn run_manifest_feature() {
 ```
 
 Example: step signature (one of many)
+
 ```rust
 // crates/provenance_ssg/tests/bdd/steps_ssg.rs
 pub fn registry() -> Vec<bdd::Step> { vec![

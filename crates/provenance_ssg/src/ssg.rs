@@ -5,7 +5,7 @@ use anyhow::{anyhow, Context, Result};
 use badges as badges_lib;
 use clap::Parser;
 use manifest_contract as mc;
-use percent_encoding::{utf8_percent_encode, NON_ALPHANUMERIC};
+use percent_encoding::{utf8_percent_encode, NON_ALPHANUMERIC, AsciiSet};
 #[cfg(feature = "external_pml")]
 use proofdown_parser as pml;
 use sha2::{Digest, Sha256};
@@ -16,6 +16,10 @@ use std::path::{Path, PathBuf};
 
 use crate::render;
 use frontend as fe;
+
+// Do NOT percent-encode common safe filename characters to avoid static servers decoding
+// paths and failing to find files. Keep '.', '-', '_' as-is in copied asset filenames.
+const SAFE_ENCODE_SET: &AsciiSet = &NON_ALPHANUMERIC.remove(b'.').remove(b'-').remove(b'_');
 
 #[derive(Parser, Debug, Clone)]
 #[command(name = "provenance-ssg", version, about = "Static site generator for Provenance (read-only)")]
@@ -285,9 +289,7 @@ fn verify_sha256(path: impl AsRef<Path>, hex_expected: &str) -> Result<(bool, Op
     Ok((got_hex == hex_expected, Some(got_hex)))
 }
 
-fn sanitize_file_name(name: &str) -> String {
-    utf8_percent_encode(name, NON_ALPHANUMERIC).to_string()
-}
+fn sanitize_file_name(name: &str) -> String { utf8_percent_encode(name, SAFE_ENCODE_SET).to_string() }
 
 struct ArtifactViewExt {
     artifact: mc::Artifact,

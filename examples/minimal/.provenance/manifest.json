@@ -21,7 +21,7 @@
       "media_type": "text/markdown",
       "path": "ci/tests/failures.md",
       "render": "markdown",
-      "sha256": "98a4c2c1f4c925f47983c4a3913a70d632befee3b125e54c9e83e287968d611f",
+      "sha256": "c41ba283deae4ca6952145ffe789f8944416653aec8a04ad3025abfce679815e",
       "title": "Failing Specs"
     }
   ],

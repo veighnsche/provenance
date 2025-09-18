@@ -8,8 +8,13 @@
 
 # Node & tooling (just in case)
 /node_modules/
+e2e/node_modules/
 /.wrangler/
 /.parcel-cache/
+e2e/.parcel-cache/
+e2e/.cache/
+e2e/cypress/screenshots/
+e2e/cypress/videos/
 
 # OS/editor
 .DS_Store

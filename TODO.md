@@ -27,12 +27,12 @@
   - [x] Ed25519 verify path test (public test key in repo)
 - SSG test fixtures
   - [x] Add large JSON fixture (5–10 MB) under `examples/minimal/ci/tests/` for truncation
-  - [ ] Expand `failures.md` to include representative edge cases (UTF‑8, long lines)
+  - [x] Expand `failures.md` to include representative edge cases (UTF‑8, long lines)
 - CI & tooling
   - [x] Ensure GitHub CI checks out submodules, runs `cargo xtask check-all` and `test-all`
-  - [ ] Add `cargo tree -d` step (optional) to detect duplicate deps
+  - [x] Add `cargo tree -d` step (optional) to detect duplicate deps
 - Docs
-  - [ ] Cross‑link contracts and specs in READMEs; finalize external‑ownership warnings
+  - [x] Cross‑link contracts and specs in READMEs; finalize external‑ownership warnings
 
 Exit criteria
 
@@ -51,7 +51,7 @@ Exit criteria
   - [ ] Golden tests: `markdown`, `json` (pretty/escaped), `table:coverage`, `summary:test`, `image`
   - [x] Truncation policy tests using the large JSON fixture
 - Badges (crate: `badges`)
-  - [ ] Schema-based validation of Shields JSON shapes; tests for `provenance`, `tests`, `coverage`
+  - [x] Schema-based validation of Shields JSON shapes; tests for `provenance`, `tests`, `coverage`
 
 Exit criteria
 
@@ -63,10 +63,10 @@ Exit criteria
 ## Week 3 — Deterministic SSG Output, Accessibility, Fragments
 
 - SSG determinism (crate: `provenance_ssg`)
-  - [ ] Stable ordering for artifacts/nav, pinned float formatting, stable HTML
+  - [x] Stable ordering for artifacts/nav, pinned float formatting, stable HTML
   - [ ] Golden HTML tests for `/index.html` and a couple of `/a/{id}` pages
 - Accessibility
-  - [ ] Add headings/landmarks/table semantics; alt text checks in renderers
+  - [x] Add headings/landmarks/table semantics; alt text checks in renderers
 - Fragments & downloads
   - [ ] Implement `/fragment/{artifact_id}` for heavy payloads; verified download links
 

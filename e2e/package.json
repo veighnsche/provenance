@@ -1,0 +1,23 @@
+{
+  "name": "provenance-e2e",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Cypress E2E tests for the Provenance static site",
+  "scripts": {
+    "build:site": "node scripts/build-site.js",
+    "serve": "http-server ../examples/minimal/site -p 5173 --silent",
+    "cy:open": "cypress open",
+    "cy:run": "cypress run",
+    "test": "start-server-and-test serve http://localhost:5173 cy:run",
+    "e2e": "pnpm run build:site && pnpm run test",
+    "e2e:open": "pnpm run build:site && start-server-and-test serve http://localhost:5173 cy:open"
+  },
+  "devDependencies": {
+    "cypress": "^15.2.0",
+    "http-server": "^14.1.1",
+    "start-server-and-test": "^2.1.1",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.2"
+  },
+  "packageManager": "pnpm@10.17.0"
+}

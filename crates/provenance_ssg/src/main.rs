@@ -7,7 +7,7 @@ use anyhow::{anyhow, Context, Result};
 use badges as badges_lib;
 use clap::Parser;
 use manifest_contract as mc;
-use percent_encoding::{utf8_percent_encode, NON_ALPHANUMERIC};
+use percent_encoding::{utf8_percent_encode, NON_ALPHANUMERIC, AsciiSet};
 // IMPORTANT: The Proofdown parser is an external submodule workspace maintained by external consultants.
 // Do NOT modify parser code in this repository. Integrate via feature-gated optional dependency only.
 #[cfg(feature = "external_pml")]
@@ -17,6 +17,10 @@ use std::collections::BTreeMap;
 use std::fs;
 use std::io::Read;
 use std::path::{Path, PathBuf};
+
+// Do NOT percent-encode common safe filename characters to avoid static servers decoding the URL
+// and failing to find the on-disk file. Keep '.', '-', '_' as-is in copied asset filenames.
+const SAFE_ENCODE_SET: &AsciiSet = &NON_ALPHANUMERIC.remove(b'.').remove(b'-').remove(b'_');
 
 #[derive(Parser, Debug, Clone)]
 #[command(name = "provenance-ssg", version, about = "Static site generator for Provenance (read-only)")]
@@ -300,7 +304,8 @@ fn verify_sha256(path: impl AsRef<Path>, hex_expected: &str) -> Result<(bool, Op
 }
 
 fn sanitize_file_name(name: &str) -> String {
-    utf8_percent_encode(name, NON_ALPHANUMERIC).to_string()
+    // Preserve original filename; avoid percent-encoding dots so static servers resolve correctly
+    name.to_string()
 }
 
 struct ArtifactViewExt {

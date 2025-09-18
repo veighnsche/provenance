@@ -2,6 +2,12 @@
 
 This crate provides reusable RSX (Dioxus) components and server-side rendering helpers for the Provenance static site generator.
 
+> IMPORTANT: External Submodule Ownership — `crates/proofdown_parser`
+>
+> The Proofdown parser lives in a nested workspace maintained externally. Do NOT modify parser code here.
+> Integrate via the feature-gated optional dependency `external_pml` in `provenance_ssg` and propose parser
+> changes upstream in the submodule repo.
+
 ## What it does
 
 - Renders the primary page sections as HTML strings:
@@ -26,6 +32,14 @@ A higher-level Layout (top bar, theme toggle, skip link, container) is currently
 ```bash
 cargo test --all-features
 ```
+
+## References
+
+- Specs and contracts live under `/.specs/` at the repo root. Start with:
+  - `/.specs/00_provenance.md` (overall contract)
+  - `/.specs/18_workspace.md` (workspace wiring and feature gates)
+  - `/.specs/40_accessibility.md` (accessibility expectations)
+
 
 ## Roadmap
 
