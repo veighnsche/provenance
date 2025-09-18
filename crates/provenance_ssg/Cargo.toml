@@ -21,13 +21,15 @@ regex = "1"
 manifest_contract = { path = "../manifest_contract" }
 renderers = { path = "../renderers" }
 badges = { path = "../badges" }
+frontend = { path = "../frontend" }
 # NOTE: External submodule crate. Maintained by external consultants in a nested workspace.
 # Integrated via optional path dep + feature flag. Do NOT modify the parser here.
 proofdown_parser = { path = "../proofdown_parser/crates/proofdown_parser", optional = true }
+proofdown_ast = { path = "../proofdown_parser/crates/proofdown_ast", optional = true }
 
 [features]
  # Gate all Proofdown parsing behind this feature; default build uses fallback rendering.
- external_pml = ["proofdown_parser"]
+ external_pml = ["proofdown_parser", "proofdown_ast"]
  default = []
  bdd = []
 

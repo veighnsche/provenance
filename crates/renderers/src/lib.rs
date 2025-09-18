@@ -1,4 +1,5 @@
 use serde::Deserialize;
+use ammonia::Builder as HtmlSanitizer;
 
 #[derive(Debug, Deserialize)]
 pub struct TestSummary {
@@ -30,7 +31,9 @@ pub fn render_markdown(md: &str) -> String {
     let parser = Parser::new_ext(md, options);
     let mut out = String::new();
     html::push_html(&mut out, parser);
-    out
+    // Sanitize potentially dangerous HTML (e.g., raw <script> in markdown)
+    let cleaner = HtmlSanitizer::default();
+    cleaner.clean(&out).to_string()
 }
 
 pub fn render_json_pretty(bytes: &[u8]) -> anyhow::Result<String> {
@@ -60,7 +63,8 @@ pub fn render_coverage(json_bytes: &[u8]) -> anyhow::Result<String> {
     let c: Coverage = serde_json::from_slice(json_bytes)?;
     let total = c.total.as_ref().map(|t| t.pct).unwrap_or(0.0);
     let mut rows = String::new();
-    if let Some(files) = c.files {
+    if let Some(mut files) = c.files {
+        files.sort_by(|a, b| a.path.cmp(&b.path));
         for f in files {
             rows.push_str(&format!("<tr><td>{}</td><td>{:.1}%</td></tr>", html_escape(&f.path), f.pct));
         }

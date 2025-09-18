@@ -178,6 +178,8 @@ fn run_with_args(args: Args) -> Result<()> {
 
         views.push(ArtifactViewExt::from(a.clone(), verified, download_href, digest_hex));
     }
+    // Deterministic ordering of artifacts regardless of manifest input order
+    views.sort_by(|a, b| a.artifact.id.cmp(&b.artifact.id));
 
     // Build index KPIs from known artifacts
     let mut kpis: BTreeMap<&str, String> = BTreeMap::new();
@@ -203,7 +205,7 @@ fn run_with_args(args: Args) -> Result<()> {
         // Parse and render Proofdown front page
         let front_path = args.root.join(&manifest.front_page.markup);
         let front_text = fs::read_to_string(&front_path).with_context(|| format!("read front page {}", front_path.display()))?;
-        let doc = pml::parse(&front_text).context("parse Proofdown front page")?;
+        let doc = pml::parse(&front_text).map_err(|e| anyhow!("parse Proofdown front page at {}:{}: {}", e.line, e.col, e.msg))?;
         let index_inner = render_front_page(&doc, &manifest, &views, args.truncate_inline_bytes, &args.root)?;
         let index_html = render::page_base(index_inner);
         write_html(args.out.join("index.html"), &index_html)?;
@@ -351,19 +353,19 @@ fn write_badge(dir: &Path, kind: &str, b: &badges_lib::ShieldsBadge) -> Result<(
 }
 
 #[cfg(feature = "external_pml")]
-fn render_front_page(doc: &pml::Document, manifest: &mc::Manifest, views: &[ArtifactViewExt], truncate_limit: usize, root: &Path) -> Result<String> {
+fn render_front_page(doc: &proofdown_ast::Document, manifest: &mc::Manifest, views: &[ArtifactViewExt], truncate_limit: usize, root: &Path) -> Result<String> {
     // Minimal renderer for the example components: grid/card + artifact.summary/table/markdown
-    fn render_blocks(blocks: &[pml::Block], manifest: &mc::Manifest, views: &[ArtifactViewExt], truncate_limit: usize, root: &Path) -> Result<String> {
+    fn render_blocks(blocks: &[proofdown_ast::Block], manifest: &mc::Manifest, views: &[ArtifactViewExt], truncate_limit: usize, root: &Path) -> Result<String> {
         let mut out = String::new();
         for b in blocks {
             match b {
-                pml::Block::Heading { level, text } => {
+                proofdown_ast::Block::Heading { level, text } => {
                     out.push_str(&format!("<h{}>{}</h{}>", level, html_escape(&interpolate(text, manifest)), level));
                 }
-                pml::Block::Paragraph(t) => {
-                    out.push_str(&format!("<p>{}</p>", html_escape(&interpolate(t, manifest))));
+                proofdown_ast::Block::Paragraph { text } => {
+                    out.push_str(&format!("<p>{}</p>", html_escape(&interpolate(text, manifest))));
                 }
-                pml::Block::Component(c) => {
+                proofdown_ast::Block::Component(c) => {
                     out.push_str(&render_component(c, manifest, views, truncate_limit, root)?);
                 }
             }
@@ -371,11 +373,10 @@ fn render_front_page(doc: &pml::Document, manifest: &mc::Manifest, views: &[Arti
         Ok(out)
     }
 
-    fn render_component(c: &pml::Component, manifest: &mc::Manifest, views: &[ArtifactViewExt], truncate_limit: usize, root: &Path) -> Result<String> {
+    fn render_component(c: &proofdown_ast::Component, manifest: &mc::Manifest, views: &[ArtifactViewExt], truncate_limit: usize, root: &Path) -> Result<String> {
         match c.name.as_str() {
             "grid" => {
                 let cols = pml::find_attr(&c.attrs, "cols").unwrap_or("3");
-                let gap = pml::find_attr(&c.attrs, "gap").unwrap_or("16");
                 let mut inner = String::new();
                 inner.push_str(&render_blocks(&c.children, manifest, views, truncate_limit, root)?);
                 Ok(format!("<div class=\"cards\" style=\"grid-template-columns:repeat({},{})\">{}</div>", cols, "minmax(280px,1fr)", inner))
@@ -391,7 +392,7 @@ fn render_front_page(doc: &pml::Document, manifest: &mc::Manifest, views: &[Arti
         }
     }
 
-    fn render_artifact_component(kind: &str, c: &pml::Component, _manifest: &mc::Manifest, views: &[ArtifactViewExt], truncate_limit: usize, root: &Path) -> Result<String> {
+    fn render_artifact_component(kind: &str, c: &proofdown_ast::Component, _manifest: &mc::Manifest, views: &[ArtifactViewExt], truncate_limit: usize, root: &Path) -> Result<String> {
         let id = pml::find_attr(&c.attrs, "id").ok_or_else(|| anyhow!("artifact.* requires id attribute"))?;
         let v = views.iter().find(|v| v.artifact.id == id).ok_or_else(|| anyhow!("unknown artifact id: {}", id))?;
         let a = &v.artifact;

@@ -1,6 +1,7 @@
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
 
+#[allow(non_snake_case)]
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct ShieldsBadge {
     pub schemaVersion: u8,
@@ -36,7 +37,7 @@ pub struct CoverageTotal { pub pct: f64 }
 pub struct Coverage { pub total: Option<CoverageTotal> }
 
 pub fn badge_tests(summary: &TestSummary) -> ShieldsBadge {
-    let message = format!("{}/{} pass", summary.passed, summary.total);
+    let message = format!("{}/{} passed", summary.passed, summary.total);
     let color = if summary.failed == 0 { "brightgreen" } else if summary.failed <= 2 { "orange" } else { "red" };
     ShieldsBadge::new("tests", message, color)
 }
@@ -50,7 +51,7 @@ pub fn badge_coverage(cov: &Coverage) -> ShieldsBadge {
 
 pub fn to_svg(b: &ShieldsBadge, style: Option<&str>) -> Result<String> {
     // Very minimal SVG generator (fixed width approximation)
-    let style = style.unwrap_or("flat");
+    let _style = style.unwrap_or("flat");
     let label_w = (b.label.len() as u32 * 6 + 10).max(40);
     let msg_w = (b.message.len() as u32 * 6 + 10).max(40);
     let width = label_w + msg_w;

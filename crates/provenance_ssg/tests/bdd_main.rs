@@ -25,6 +25,7 @@ async fn main() {
     } else {
         let list = [
             repo_root.join("features/ssg.feature"),
+            repo_root.join("features/ssg_render.feature"),
             repo_root.join("features/badges.feature"),
         ];
         for f in list {

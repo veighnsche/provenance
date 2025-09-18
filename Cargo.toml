@@ -8,6 +8,7 @@ members = [
     "crates/renderers",
     "crates/badges",
     "crates/bdd_harness",
+    "crates/frontend",
     "crates/tools",
     "xtask"
 ]

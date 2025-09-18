@@ -5,8 +5,10 @@ fn markdown_renders_basic() {
     let md = "# Title\n\nHello <world> & friends.";
     let html = render_markdown(md);
     assert!(html.contains("<h1>Title</h1>"));
-    // pulldown-cmark passes inline raw HTML tags through; ampersand is escaped
-    assert!(html.contains("Hello <world> &amp; friends."));
+    // Output is sanitized: unknown tags are removed/escaped; ampersand escaped; base text present
+    assert!(html.contains("Hello "));
+    assert!(html.contains("&amp; friends."));
+    assert!(!html.contains("<world>"));
 }
 
 #[test]

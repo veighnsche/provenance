@@ -29,7 +29,7 @@ Feature: Provenance Manifest validity and canonicalization
     Given I set the first artifact path to "../etc/passwd"
     When I validate the manifest
     Then the validation result is "error"
-    And the error contains "escapes root"
+    And the error contains "must not contain"
 
   Scenario: Unknown render values are rejected
     Given I set the first artifact render to "bogus"

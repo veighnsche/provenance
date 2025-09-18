@@ -1,3 +1,6 @@
+/// THIS FILE IS GETTING TOO BIG
+/// PLEASE MODULARIZE AT YOUR NEXT REFACTORING
+
 use anyhow::{anyhow, Context, Result};
 use badges as badges_lib;
 use clap::Parser;
@@ -12,6 +15,7 @@ use std::io::Read;
 use std::path::{Path, PathBuf};
 
 use crate::render;
+use frontend as fe;
 
 #[derive(Parser, Debug, Clone)]
 #[command(name = "provenance-ssg", version, about = "Static site generator for Provenance (read-only)")]
@@ -89,7 +93,7 @@ pub fn run_with_args(args: Args) -> Result<()> {
         fs::create_dir_all(&assets_dir).context("create assets dir")?;
     }
 
-    // Build artifact views
+    // Build artifact views (deterministic order)
     let mut views = Vec::new();
     for a in &manifest.artifacts {
         let src = args.root.join(&a.path);
@@ -114,6 +118,8 @@ pub fn run_with_args(args: Args) -> Result<()> {
 
         views.push(ArtifactViewExt::from(a.clone(), verified, download_href, digest_hex));
     }
+    // Sort by artifact id to guarantee stable ordering regardless of manifest input ordering
+    views.sort_by(|a, b| a.artifact.id.cmp(&b.artifact.id));
 
     // KPIs
     let mut kpis: BTreeMap<&str, String> = BTreeMap::new();
@@ -138,19 +144,24 @@ pub fn run_with_args(args: Args) -> Result<()> {
     {
         let front_path = args.root.join(&manifest.front_page.markup);
         let front_text = fs::read_to_string(&front_path).with_context(|| format!("read front page {}", front_path.display()))?;
-        let doc = pml::parse(&front_text).context("parse Proofdown front page")?;
+        let doc = pml::parse(&front_text).map_err(|e| anyhow!("parse Proofdown front page at {}:{}: {}", e.line, e.col, e.msg))?;
         let index_inner = render_front_page(&doc, &manifest, &views, args.truncate_inline_bytes, &args.root)?;
         let index_html = render::page_base(index_inner);
         write_html(args.out.join("index.html"), &index_html)?;
     }
     #[cfg(not(feature = "external_pml"))]
     {
-        let index_html = render::index_page(
-            &manifest.front_page.title,
-            &manifest.commit,
-            kpis,
-            views.iter().map(|v| v.as_view()).collect(),
-        );
+        // Map to frontend artifacts for RSX rendering
+        let featured: Vec<fe::Artifact> = views.iter().map(|v| fe::Artifact {
+            id: &v.artifact.id,
+            title: &v.artifact.title,
+            render: &v.artifact.render,
+            media_type: &v.artifact.media_type,
+            verified: v.verified,
+            download_href: &v.download_href,
+        }).collect();
+        let inner = fe::render_index(&manifest.front_page.title, &manifest.commit, &kpis, &featured);
+        let index_html = render::page_base(inner);
         write_html(args.out.join("index.html"), &index_html)?;
     }
 
@@ -179,10 +190,50 @@ pub fn run_with_args(args: Args) -> Result<()> {
             "image" => render::render_image(&v.download_href, &a.title),
             other => return Err(anyhow!("Unsupported render: {} for id {}", other, a.id)),
         };
-        let page_html = render::artifact_page(&v.as_view(), &body);
+        let fa = fe::Artifact {
+            id: &a.id,
+            title: &a.title,
+            render: &a.render,
+            media_type: &a.media_type,
+            verified: v.verified,
+            download_href: &v.download_href,
+        };
+        let inner = fe::render_artifact(&fa, &body);
+        let page_html = render::page_base(inner);
         let out_dir = args.out.join("a").join(&a.id);
         fs::create_dir_all(&out_dir).context("create artifact page dir")?;
         write_html(out_dir.join("index.html"), &page_html)?;
+    }
+
+    // Artifacts index and search index
+    {
+        // artifacts index
+        let items: Vec<fe::Artifact> = views.iter().map(|v| fe::Artifact {
+            id: &v.artifact.id,
+            title: &v.artifact.title,
+            render: &v.artifact.render,
+            media_type: &v.artifact.media_type,
+            verified: v.verified,
+            download_href: &v.download_href,
+        }).collect();
+        let inner = fe::render_artifacts_index(&items);
+        let html = render::page_base(inner);
+        let art_dir = args.out.join("artifacts");
+        fs::create_dir_all(&art_dir).ok();
+        write_html(art_dir.join("index.html"), &html)?;
+
+        // search index
+        #[derive(serde::Serialize)]
+        struct SearchItem<'a> { id: &'a str, title: &'a str, render: &'a str, media_type: &'a str, verified: bool }
+        let sidx: Vec<SearchItem> = views.iter().map(|v| SearchItem {
+            id: &v.artifact.id,
+            title: &v.artifact.title,
+            render: &v.artifact.render,
+            media_type: &v.artifact.media_type,
+            verified: v.verified,
+        }).collect();
+        let txt = serde_json::to_string_pretty(&sidx)? + "\n";
+        fs::write(args.out.join("search_index.json"), txt).ok();
     }
 
     // robots.txt
@@ -199,10 +250,16 @@ pub fn run_with_args(args: Args) -> Result<()> {
         let s_badge = badges_lib::TestSummary { total: s.total, passed: s.passed, failed: s.failed, duration_seconds: s.duration_seconds };
         let b = badges_lib::badge_tests(&s_badge);
         write_badge(&badge_dir, "tests", &b)?;
+    } else {
+        let b = badges_lib::badge_error("tests", "error");
+        write_badge(&badge_dir, "tests", &b)?;
     }
     if let Some(c) = &coverage {
         let c_badge = badges_lib::Coverage { total: c.total.as_ref().map(|t| badges_lib::CoverageTotal { pct: t.pct }) };
         let b = badges_lib::badge_coverage(&c_badge);
+        write_badge(&badge_dir, "coverage", &b)?;
+    } else {
+        let b = badges_lib::badge_error("coverage", "error");
         write_badge(&badge_dir, "coverage", &b)?;
     }
 
@@ -282,19 +339,19 @@ fn write_badge(dir: &Path, kind: &str, b: &badges_lib::ShieldsBadge) -> Result<(
 }
 
 #[cfg(feature = "external_pml")]
-fn render_front_page(doc: &pml::Document, manifest: &mc::Manifest, views: &[ArtifactViewExt], truncate_limit: usize, root: &Path) -> Result<String> {
+fn render_front_page(doc: &proofdown_ast::Document, manifest: &mc::Manifest, views: &[ArtifactViewExt], truncate_limit: usize, root: &Path) -> Result<String> {
     // Minimal renderer: grid/card + artifact.summary/table/markdown
-    fn render_blocks(blocks: &[pml::Block], manifest: &mc::Manifest, views: &[ArtifactViewExt], truncate_limit: usize, root: &Path) -> Result<String> {
+    fn render_blocks(blocks: &[proofdown_ast::Block], manifest: &mc::Manifest, views: &[ArtifactViewExt], truncate_limit: usize, root: &Path) -> Result<String> {
         let mut out = String::new();
         for b in blocks {
             match b {
-                pml::Block::Heading { level, text } => {
+                proofdown_ast::Block::Heading { level, text } => {
                     out.push_str(&format!("<h{}>{}</h{}>", level, html_escape(&interpolate(text, manifest)), level));
                 }
-                pml::Block::Paragraph(t) => {
-                    out.push_str(&format!("<p>{}</p>", html_escape(&interpolate(t, manifest))));
+                proofdown_ast::Block::Paragraph { text } => {
+                    out.push_str(&format!("<p>{}</p>", html_escape(&interpolate(text, manifest))));
                 }
-                pml::Block::Component(c) => {
+                proofdown_ast::Block::Component(c) => {
                     out.push_str(&render_component(c, manifest, views, truncate_limit, root)?);
                 }
             }
@@ -302,7 +359,7 @@ fn render_front_page(doc: &pml::Document, manifest: &mc::Manifest, views: &[Arti
         Ok(out)
     }
 
-    fn render_component(c: &pml::Component, manifest: &mc::Manifest, views: &[ArtifactViewExt], truncate_limit: usize, root: &Path) -> Result<String> {
+    fn render_component(c: &proofdown_ast::Component, manifest: &mc::Manifest, views: &[ArtifactViewExt], truncate_limit: usize, root: &Path) -> Result<String> {
         match c.name.as_str() {
             "grid" => {
                 let cols = pml::find_attr(&c.attrs, "cols").unwrap_or("3");
@@ -321,7 +378,7 @@ fn render_front_page(doc: &pml::Document, manifest: &mc::Manifest, views: &[Arti
         }
     }
 
-    fn render_artifact_component(kind: &str, c: &pml::Component, _manifest: &mc::Manifest, views: &[ArtifactViewExt], truncate_limit: usize, root: &Path) -> Result<String> {
+    fn render_artifact_component(kind: &str, c: &proofdown_ast::Component, _manifest: &mc::Manifest, views: &[ArtifactViewExt], truncate_limit: usize, root: &Path) -> Result<String> {
         let id = pml::find_attr(&c.attrs, "id").ok_or_else(|| anyhow!("artifact.* requires id attribute"))?;
         let v = views.iter().find(|v| v.artifact.id == id).ok_or_else(|| anyhow!("unknown artifact id: {}", id))?;
         let a = &v.artifact;

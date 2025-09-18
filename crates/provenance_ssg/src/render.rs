@@ -14,9 +14,9 @@ pub struct ArtifactView<'a> {
 pub use renderers::{Coverage, TestSummary};
 
 pub fn page_base(inner_html: String) -> String {
-    let style = "body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,sans-serif;margin:0;padding:0;color:#111} .container{max-width:1040px;margin:0 auto;padding:24px} header{padding:16px 0;border-bottom:1px solid #eee;margin-bottom:24px} .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px} .card{border:1px solid #eee;border-radius:8px;padding:16px;background:#fff} table{width:100%;border-collapse:collapse} thead th{scope:col} th,td{padding:8px;border-bottom:1px solid #eee;text-align:left} .badge{display:inline-block;padding:2px 8px;border-radius:6px;font-size:12px;color:#fff} .ok{background:#28a745} .warn{background:#ff9800} .err{background:#d32f2f} code, pre{background:#f7f7f7;border-radius:6px;padding:2px 6px} pre{padding:12px;overflow-x:auto} .muted{color:#777;font-size:14px}";
+    let style = r#"body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,sans-serif;margin:0;padding:0;color:#111} .container{max-width:1040px;margin:0 auto;padding:24px} header{padding:16px 0;border-bottom:1px solid #eee;margin-bottom:24px} .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px} .card{border:1px solid #eee;border-radius:8px;padding:16px;background:#fff} table{width:100%;border-collapse:collapse} thead th{scope:col} th,td{padding:8px;border-bottom:1px solid #eee;text-align:left} .badge{display:inline-block;padding:2px 8px;border-radius:6px;font-size:12px;color:#fff} .ok{background:#28a745} .warn{background:#ff9800} .err{background:#d32f2f} code, pre{background:#f7f7f7;border-radius:6px;padding:2px 6px} pre{padding:12px;overflow-x:auto} .muted{color:#777;font-size:14px} .skip-link{position:absolute;left:-10000px;top:auto;width:1px;height:1px;overflow:hidden} .skip-link:focus{position:static;width:auto;height:auto;}"#;
     format!(
-        "<!doctype html><html lang=\"en\"><head><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"><style>{}</style></head><body><div class=\"container\">{}</div></body></html>",
+        "<!doctype html><html lang=\"en\"><head><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"><style>{}</style></head><body><a href=\"#main\" class=\"skip-link\">Skip to content</a><div class=\"container\"><main id=\"main\" role=\"main\">{}</main></div></body></html>",
         style,
         inner_html
     )
@@ -54,7 +54,7 @@ pub fn index_page(
 
 pub fn artifact_page(a: &ArtifactView, body_html: &str) -> String {
     let mut inner = String::new();
-    inner.push_str(&format!("<header><h1>{}</h1><p class=\"muted\">{}</p></header>", html_escape(a.title), html_escape(a.id)));
+    inner.push_str(&format!("<header><nav aria-label=\"Breadcrumb\"><a href=\"/index.html\">Home</a> / <span>{}</span></nav><h1>{}</h1><p class=\"muted\">{}</p></header>", html_escape(a.title), html_escape(a.title), html_escape(a.id)));
     inner.push_str(&format!("<p>{}</p>", if a.verified { "<span class=\"badge ok\">verified</span>" } else { "<span class=\"badge err\">digest mismatch</span>" }));
     inner.push_str(&format!("<article>{}</article>", body_html));
     inner.push_str(&format!("<p><a href=\"{}\">Download raw</a></p>", html_escape(&a.download_href)));
