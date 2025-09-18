@@ -5,7 +5,7 @@
 - **MUST/SHOULD/MAY** follow RFC-2119.
 - **Index (Manifest)**: the signed config that enumerates all renderable artifacts and the front-page markup. By convention it is published at `.provenance/manifest.json` with signature `.provenance/manifest.json.sig`.
 - **Artifact**: any file produced by CI and referenced by the Index.
-- **Proofdown**: the safer-than-HTML markup rendered by the Worker (working name). See `.specs/10_proofdown.md`. Recommended extension: `.pml`.
+- **Proofdown**: the safer-than-HTML markup rendered by the Worker (working name). It includes a CommonMark/GFM subset (including tables) for text content and extends it with typed components; raw HTML is not supported and is treated as literal text/escaped. See `.specs/10_proofdown.md`. Recommended extension: `.pml`.
 - **Worker**: the Cloudflare Worker serving the site.
 
 ---
@@ -58,6 +58,7 @@
 
 - The front page **MUST** be authored in Proofdown and referenced by `front_page.markup` in the Index.
 - Proofdown **MUST NOT** allow arbitrary HTML/JS/CSS injection.
+- Proofdown **MUST** support a CommonMark/GFM subset (including tables) in addition to its component syntax; raw HTML is not supported and is treated as literal text/escaped.
 - Proofdown **MUST** support a whitelisted set of structural components (e.g., `grid`, `tabs`, `card`, `section`, `gallery`).
 - Proofdown **MUST** support **artifact components** that reference Artifacts **by `id` only** (e.g., `artifact.markdown`, `artifact.table`, `artifact.json`, `artifact.image`, `artifact.summary`, `artifact.gauge`, `artifact.viewer kind="llm-proof"`).
 - Proofdown **MUST** allow data interpolation from verified Index fields via a safe placeholder syntax (e.g., `{{ commit }}`).
@@ -108,7 +109,7 @@
 
 - The renderer **MUST** map `render` hints + `media_type` to a fixed set of viewers.
 - Minimum viewers that **MUST** be implemented:
-  - `markdown` → safe Markdown to HTML
+  - `markdown` → safe CommonMark Markdown to HTML
   - `json` → collapsible JSON tree
   - `table:coverage` → coverage JSON to table
   - `summary:test` → test summary JSON to KPIs (total/passed/failed/duration)

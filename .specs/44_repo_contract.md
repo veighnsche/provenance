@@ -56,7 +56,7 @@ Notes
 └── ci/
     ├── front_page.pml     # Proofdown front page
     ├── tests/summary.json # summary:test input
-    ├── tests/failures.md  # failing specs in Markdown
+    ├── tests/failures.md  # failing specs in Markdown (CommonMark)
     ├── coverage/coverage.json
     ├── source/            # optional
     │   └── bundle.tar.gz  # optional: repo:bundle
@@ -66,6 +66,7 @@ Notes
 
 - Paths in `manifest.json` are repo‑relative to `RAW_BASE_URL` (e.g., `ci/tests/summary.json`).
 - `front_page.markup` MUST point to the Proofdown front page (e.g., `ci/front_page.pml`).
+- Markdown semantics follow a CommonMark/GFM subset (including tables); raw HTML is not supported and is escaped as text.
 
 ---
 

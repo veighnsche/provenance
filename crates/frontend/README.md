@@ -15,6 +15,7 @@ This crate provides reusable RSX (Dioxus) components and server-side rendering h
   - Artifact detail pages
   - Artifacts index (table)
 - Produces accessible, deterministic markup ready to be wrapped by the SSG layout.
+  - Proofdown text content uses a CommonMark/GFM subset (including tables); raw HTML is not supported and is escaped as text.
 
 ## Components (initial)
 

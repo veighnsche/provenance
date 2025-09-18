@@ -39,7 +39,7 @@ Status: draft. Naming may change; semantics are stable once versioned.
 
 Proofdown combines:
 
-- Markdown‑like paragraphs, headings (`#` to `####`), lists, code fences (with explicit language), and inline code.
+- CommonMark (stable subset) for text content — headings, paragraphs, lists, blockquotes, code fences, emphasis, images, and links. Raw HTML is not supported; any raw HTML in Markdown is treated as literal text/escaped and is never rendered as live HTML.
 - A small HTML‑like component syntax for typed blocks and inlines, e.g., `<grid cols=3> ... </grid>`.
 - Interpolation of verified Index fields via `{{ field }}`.
 - A dedicated link macro `[[...]]` with special protocols for artifact and repository links.
@@ -77,7 +77,7 @@ Proofdown combines:
 
 - Worker MUST refuse to render on any parser error or unknown component/attribute.
 - Worker MUST NOT fetch or render any resource not listed in the verified Index.
-- All text is sanitized; no client scripts are emitted; styles are limited to component attrs.
+- All text is sanitized; raw HTML is not supported and is escaped (never emitted); no client scripts are emitted; styles are limited to component attrs.
 - Download links MUST point only to verified bytes (commit‑pinned raw URLs or Worker‑proxied verified streams by SHA‑256).
 
 ---
@@ -349,15 +349,9 @@ If neither resolution is present in the Index, any `repo:` link MUST be rejected
 ```
 document      = { block } ;
 
-block         = heading | paragraph | list | code_fence | component ;
+block         = markdown_block | component ;
 
-heading       = ( "#" | "##" | "###" | "####" ), space, text, newline ;
-paragraph     = textline, { textline }, blankline ;
-list          = listitem, { listitem } ;
-listitem      = ( "-" | "*" | digit, "." ), space, text, newline ;
-code_fence    = "```", lang, newline, { anyline }, "```", newline ;
-
-component     = open_tag, { block | text | inline_code }, ( close_tag | self_close ) ;
+component     = open_tag, { block | markdown_inline }, ( close_tag | self_close ) ;
 open_tag      = "<", name, { space, attribute }, ">" ;
 self_close    = space?, "/" , ">" ;
 close_tag     = "</", name, ">" ;
@@ -369,10 +363,8 @@ value         = quoted | bare ;
 bare          = 1*( ALNUM | "_" | "-" | "/" | ":" | "." ) ;
 quoted        = '"', { anychar - '"' }, '"' ;
 
-inline_code   = "`", { anychar - "`" }, "`" ;
-textline      = { text | link_macro | inline_code }, newline ;
-link_macro    = "[[", target, ( "|", label )?, "]]" ;
-target        = see Link Macro ABNF ;
+; Markdown blocks and inlines follow CommonMark and are not re‑specified here.
+; The link macro and component syntax are Proofdown extensions.
 
 space         = 1*( SP ) ;
 newline       = ( CR? LF ) ;
@@ -382,6 +374,7 @@ blankline     = newline, { newline } ;
 Notes
 
 - Parser MUST reject unknown components/attrs; attributes are validated post-parse by schema.
+- Markdown grammar follows CommonMark; raw HTML blocks/inlines are sanitized/escaped and not emitted as HTML.
 - Whitespace normalization and HTML escaping are performed at render time.
 
 ---

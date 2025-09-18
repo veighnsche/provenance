@@ -91,7 +91,7 @@ This document captures all the missing pieces to turn the Provenance static site
 - Header: title (`front_page.title`) and commit.
 - KPI cards: Tests total/passed/failed, Duration, Coverage.
 - Featured artifacts grid (configurable by manifest or chosen heuristics).
-- Proofdown section (if `external_pml`): rendered components (`grid`, `card`, `artifact.*`).
+- Proofdown section (if `external_pml`): rendered components (`grid`, `card`, `artifact.*`) with text using a CommonMark/GFM subset (including tables); raw HTML is not supported and is escaped as text.
 
 ### Artifacts Index (`/artifacts/`)
 
@@ -116,6 +116,7 @@ This document captures all the missing pieces to turn the Provenance static site
 
 ### Proofdown Presentation
 
+- Markdown: CommonMark/GFM subset (including tables) for text; raw HTML is not supported and is escaped as text.
 - Supported components (initial): `grid`, `card`, `artifact.summary`, `artifact.table`, `artifact.json`, `artifact.markdown`, `artifact.image`, `artifact.link`.
 - Unknown components: render an error card with context (line/col) and a link to docs.
 - Include depth and node limits: render an error banner when exceeded.

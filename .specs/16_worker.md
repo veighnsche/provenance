@@ -158,6 +158,8 @@ On every request needing data:
 - The renderer rejects unknown artifact ids and unresolved repo links (unless verified via per‑file artifacts or a bundle).
 - Includes are depth‑limited (e.g., 3) to prevent cycles.
 
+- Markdown semantics follow CommonMark; raw HTML blocks/inlines are sanitized/escaped and not emitted as live HTML.
+
 ---
 
 ## 6. Caching Strategy

@@ -5,6 +5,7 @@ This directory contains Cypress end-to-end tests against the generated static si
 ## Prerequisites
 
 - Node.js 18+
+- pnpm (recommended; corepack can activate the pinned version)
 - Rust toolchain (for building the site)
 
 ## How it works
@@ -19,19 +20,31 @@ Install dependencies:
 
 ```bash
 cd e2e
-npm install
+pnpm install
 ```
 
 Run E2E tests headless:
 
 ```bash
-npm run e2e
+pnpm run e2e
 ```
 
 Open Cypress in interactive mode:
 
 ```bash
-npm run e2e:open
+pnpm run e2e:open
+```
+
+### Alternative: via cargo xtask
+
+You can also run E2E via the workspace helper without changing directories:
+
+```bash
+# Headless (builds site then runs Cypress)
+cargo xtask e2e
+
+# Interactive Cypress runner
+cargo xtask e2e-open
 ```
 
 ## What’s tested (initial)

@@ -20,6 +20,16 @@ fn main() -> ExitCode {
         "ci-integration-build" => seq(&[
             &["cargo","build","-p","provenance_ssg","--features","external_pml"],
         ]),
+        "e2e" => seq(&[
+            // Install e2e dependencies (force reinstallation non-interactively) and run Cypress headless
+            &["pnpm","-C","e2e","install","--force"],
+            &["pnpm","-C","e2e","run","e2e"],
+        ]),
+        "e2e-open" => seq(&[
+            // Install e2e dependencies (force reinstallation non-interactively) and open Cypress UI
+            &["pnpm","-C","e2e","install","--force"],
+            &["pnpm","-C","e2e","run","e2e:open"],
+        ]),
         other => {
             eprintln!("unknown subcommand: {}", other);
             ExitCode::from(2)

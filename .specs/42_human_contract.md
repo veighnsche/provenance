@@ -53,7 +53,7 @@ Acceptance checklist (minimum)
   - Index signature status displayed on the front page.
   - Per‑artifact digest status displayed adjacent to viewers and downloads.
 - Readability
-  - Collapsible JSON trees; stable Markdown rendering; responsive images.
+  - Collapsible JSON trees; CommonMark/GFM subset (including tables); raw HTML not supported (escaped as text); responsive images.
   - Structured layout components (`grid`, `section`, `card`, `tabs`).
 - Deep linking
   - Artifact pages at `/a/{id}`; fragments at `/fragment/{id}`; anchors within Proofdown using `[[doc:#anchor]]`.

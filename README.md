@@ -41,7 +41,7 @@ We prioritize verifiable evidence and human‑readable documentation over implem
 
 - Index: The sole source of truth. Produced by CI, signed with Ed25519, and lists all renderable artifacts plus front‑page markup.
 - Artifact: Any file emitted by CI that is referenced by id in the Index, including specs, contracts, test outputs, generated documentation, and AI‑authored proofs.
-- Proofdown (working name; formerly “CMD”): a safe, component‑based markup that is less than HTML and more than Markdown, designed for AI to author deterministically and for humans to review. Strictly whitelisted; no raw HTML/JS/CSS.
+- Proofdown (working name; formerly “CMD”): a safe, component‑based markup that is less than HTML and more than Markdown, designed for AI to author deterministically and for humans to review. It supports a CommonMark/GFM subset (including tables) for text content; raw HTML is not supported and is treated as literal text/escaped. Strictly whitelisted; no raw HTML/JS/CSS.
 - Worker: A Cloudflare Worker (V8 isolate) that fetches the Index and signature, verifies them, lazily verifies artifact digests, invokes the Rust parser via WASM to render Proofdown → HTML, and serves routes.
 
 ---

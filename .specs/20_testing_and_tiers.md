@@ -112,7 +112,7 @@ Notes
 ## 4. Minimal Requirements by Crate (v1)
 
 - `provenance_ssg` (bin)
-  - Alpha: render index/per‑artifact pages from root manifest; verify sha256; markdown/json/image/coverage/test summary viewers; robots.txt.
+  - Alpha: render index/per‑artifact pages from root manifest; verify sha256; CommonMark markdown/json/image/coverage/test summary viewers; robots.txt.
   - Beta: parse and render front_page.pml (structural + artifact.* + links); truncation banners; deterministic output; static badges JSON.
   - RC: static badges SVG; `--verify-manifest` flag (canonicalize + Ed25519); golden tests; a11y smoke on index and at least one artifact page.
 
@@ -127,7 +127,7 @@ Notes
   - RC: full minimal grammar per spec; golden AST tests for front‑page examples.
 
 - `renderers` (lib)
-  - Alpha: markdown/json/table:coverage/summary:test/image render helpers.
+  - Alpha: CommonMark markdown/json/table:coverage/summary:test/image render helpers.
   - Beta: RSX components for structural layout; HTML sanitization; deterministic rendering.
   - RC: golden RSX/HTML outputs for example inputs; a11y checks for table structure.
 

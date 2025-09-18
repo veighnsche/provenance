@@ -27,8 +27,8 @@ This document outlines the crates in the Provenance monorepo and how they wire t
   - Provides stable API to load/validate manifests
 
 - `proofdown_parser` (lib)
-  - Parses `.pml` Proofdown files into a stable AST (no network/IO)
-  - Validates components/attributes and link macro forms syntactically
+  - Parses `.pml` Proofdown files into a stable AST (no network/IO), including a CommonMark/GFM subset (including tables) for text content plus typed components and the link macro.
+  - Validates components/attributes and link macro forms syntactically. Raw HTML in Markdown is not supported; it is treated as literal text/escaped at render time.
   - No rendering; pure parse + AST datatypes
 
 - `renderers` (lib)

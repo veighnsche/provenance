@@ -66,12 +66,12 @@ jobs:
       - name: Enable corepack & activate pnpm
         run: |
           corepack enable
-          corepack prepare pnpm@9.12.2 --activate
+          corepack prepare pnpm@10.17.0 --activate
 
       - name: Build example site
         working-directory: e2e
         run: |
-          pnpm install
+          pnpm install --frozen-lockfile
           pnpm run build:site
 
       - name: Run Cypress tests

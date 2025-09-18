@@ -12,6 +12,7 @@ Related specs: `./00_provenance.md`, `./10_proofdown.md`, `./16_worker.md`, `./4
 - Your goal is to emit verifiable testing evidence and a signed manifest so a Provenance mirror can safely render it.
 - Principle: ship evidence, not claims → SPECS → CONTRACTS → TEST ARTIFACTS → PROOF PAGE → CODE.
 - Human reviewability: the front page (Proofdown) summarizes KPIs and links to details; all links resolve only to verified artifacts.
+- Human reviewability: the front page (Proofdown) summarizes KPIs and links to details; all links resolve only to verified artifacts. Proofdown supports a CommonMark/GFM subset (including tables) for text content; raw HTML is not supported and is escaped as literal text.
 
 ---
 
@@ -25,6 +26,7 @@ Related specs: `./00_provenance.md`, `./10_proofdown.md`, `./16_worker.md`, `./4
   - `failures` (optional; render `markdown`) → `ci/tests/failures.md`
 - Front page Proofdown → `ci/front_page.pml`
   - Use only whitelisted components; reference artifacts by `id` (not by path).
+  - You may use a CommonMark/GFM subset (including tables) in text content; do not use raw HTML (it is not supported and will be escaped as text).
 - Signed manifest → `.provenance/manifest.json` and `.provenance/manifest.json.sig`
   - Every artifact listed with `id`, `title`, `path`, `media_type`, `render`, `sha256` (hex, lowercase).
   - Signature: Ed25519 over canonical JSON bytes (sorted keys, UTF‑8, `\n` newlines), signature stored as Base64 in `.sig`.
@@ -91,6 +93,7 @@ PR must include
 - Reference artifacts by `id` only; never by path.
 - Use `[[a:<id>]]` for artifact deep links and `[[repo:<path>#L..]]` or `<repo.code/>` for code context (must be resolvable via verified artifacts/bundle).
 - Prefer `<artifact.summary/>`, `<artifact.table/>`, `<artifact.json/>`, `<artifact.markdown/>` for rendering.
+- Write Markdown using CommonMark/GFM subset features (headings, lists, emphasis, code fences, images, links, tables). Raw HTML is not supported and will be escaped as text.
 - Keep includes under depth limit; avoid cycles.
 - Keep snippet ranges modest; add download links for large evidence.
 
