@@ -2,11 +2,11 @@
 
 This document is for our internal IDE AI agents working on this repository only. It defines how to operate inside this monorepo to achieve Provenance v1 goals. This is not for external adopters; external projects should follow `./.specs/46_llm_developer_contract.md`.
 
-> IMPORTANT: External Submodule Ownership — `crates/proofdown_parser`
+> IMPORTANT: External Submodule Ownership — `crates/proofdown_parser`, `crates/proofdown_renderer`
 >
-> The Proofdown parser is maintained by external consultants in a nested workspace (git submodule).
-> Do NOT modify parser code in this repository. Propose changes in the submodule repo and update the
-> submodule pointer here. In this workspace, only integration wiring/feature gating should be changed.
+> The Proofdown parser and the Proofdown HTML renderer are maintained by external consultants in nested workspaces (git submodules).
+> Do NOT modify code in these submodules in this repository. Propose changes in the respective submodule repos and update the
+> submodule pointers here. In this workspace, only integration wiring/feature gating should be changed.
 
 ---
 
@@ -38,7 +38,8 @@ Non‑goals: Do NOT mandate frameworks for external repos. That’s handled in .
 - Crates:
   - `./crates/manifest_contract/` — manifest types, load/validate, canonicalize, verify
   - `./crates/proofdown_parser/` — Proofdown AST + parser (EXTERNAL SUBMODULE; DO NOT MODIFY HERE)
-  - `./crates/renderers/` — deterministic render helpers (to be created)
+  - `./crates/proofdown_renderer/` — Proofdown AST → safe HTML (EXTERNAL SUBMODULE; DO NOT MODIFY HERE)
+  - `./crates/renderers/` — deterministic render helpers for non-Proofdown viewers (markdown/json/table:coverage/summary:test/image)
   - `./crates/badges/` — JSON+SVG badges (to be created)
   - `./crates/provenance_ssg/` — static site generator (bin)
 
@@ -59,7 +60,7 @@ Non‑goals: Do NOT mandate frameworks for external repos. That’s handled in .
 - Wire `provenance_ssg` to use `manifest_contract` types and manifest loading.
 - Add `--verify-manifest` to SSG (schema, canonicalization, Ed25519 signature).
 - Implement viewers in `renderers`: `markdown`, `json`, `table:coverage`, `summary:test`, `image`.
-- Implement Proofdown parser in `proofdown_parser` and use it to render `ci/front_page.pml`.
+- Use `proofdown_parser` to parse and `proofdown_renderer` to render `ci/front_page.pml`.
 - Implement badges in `badges` and have SSG output `site/badge/*.json` and `.svg`.
 - Ensure deterministic outputs; add golden tests as appropriate.
 
@@ -124,6 +125,7 @@ cargo run -p provenance_ssg -- --root examples/minimal --out site
 - SHA‑256 digest verified for every artifact before rendering.
 - Proofdown parse/lint passes; unknown components/attrs are errors.
 - Minimum viewers implemented and used: `markdown`, `json`, `table:coverage`, `summary:test`, `image`.
+- Proofdown front page rendered via `proofdown_renderer` with whitelisted components; unknown components/attrs cause clear errors.
 - Deterministic outputs (repeatable, byte‑identical for same inputs).
 - Badges (JSON+SVG) derived only from verified inputs.
 - Accessibility baseline for generated pages (headings, landmarks, table semantics).

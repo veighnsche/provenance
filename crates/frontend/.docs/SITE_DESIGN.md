@@ -15,14 +15,17 @@ This document captures all the missing pieces to turn the Provenance static site
 
 - Crates
   - `provenance_ssg` (existing): reads manifest, validates, builds artifact views, writes site.
-  - `renderers` (existing): safe HTML renderers for markdown, JSON, coverage tables, test summaries.
-  - `proofdown_parser`/`proofdown_ast` (existing, optional): parse Proofdown front page; feature `external_pml`.
-  - `frontend` (NEW, proposed): RSX components (Dioxus) for page templates and layout, compiled to static HTML strings consumed by `provenance_ssg`.
+  - `renderers` (existing): safe HTML renderers for markdown, JSON, coverage tables, test summaries (non‑Proofdown viewers).
+  - `proofdown_parser` (external submodule): parse Proofdown front page into AST; feature `external_pml`.
+  - `proofdown_renderer` (external submodule): convert Proofdown AST → safe HTML fragment (whitelist, sanitize, deterministic ids).
+  - `frontend` (existing/proposed): RSX components (Dioxus) for page templates and layout, compiled to static HTML strings consumed by `provenance_ssg`.
 
 - Data flow
   1. Load `manifest.json` (+ schema + semantics + optional signature).
   2. Build `ArtifactView` models (with verification and download hrefs).
-  3. Render pages using RSX components (layout, index, artifact, list, proofdown widgets) + `renderers` for artifact bodies.
+  3. Render pages using RSX components (layout, index, artifact, list). For body content:
+     - Use `proofdown_renderer` to render the Proofdown front page AST → HTML fragment, then embed in the page template.
+     - Use `renderers` for non‑Proofdown artifact bodies (markdown/json/table:coverage/summary:test/image).
   4. Write static files into `site/` (plus `assets/`, `badge/`, `robots.txt`).
 
 - Routing (static URLs)
@@ -55,7 +58,7 @@ This document captures all the missing pieces to turn the Provenance static site
     - `render_index(props) -> String`
     - `render_artifact(props) -> String`
     - `render_artifacts_index(props) -> String`
-    - `render_proofdown(doc, context) -> String`
+  - Proofdown AST→HTML is handled by `proofdown_renderer`; the frontend only embeds the resulting HTML fragment.
   - `provenance_ssg` will depend on `frontend` and call these functions to obtain HTML strings before writing to disk.
 
 - Why a separate crate?
@@ -118,9 +121,9 @@ This document captures all the missing pieces to turn the Provenance static site
 
 - Markdown: CommonMark/GFM subset (including tables) for text; raw HTML is not supported and is escaped as text.
 - Supported components (initial): `grid`, `card`, `artifact.summary`, `artifact.table`, `artifact.json`, `artifact.markdown`, `artifact.image`, `artifact.link`.
-- Unknown components: render an error card with context (line/col) and a link to docs.
-- Include depth and node limits: render an error banner when exceeded.
-- Sanitization: any text/markdown from artifacts is sanitized; Proofdown renderer itself emits safe HTML.
+- Unknown components: the `proofdown_renderer` returns a clear error with context (line/col); SSG surfaces it.
+- Include depth and node limits: `proofdown_renderer` returns an error banner when exceeded.
+- Sanitization: the `proofdown_renderer` emits safe HTML; artifact viewers sanitize their own outputs.
 
 ---
 
@@ -149,8 +152,8 @@ This document captures all the missing pieces to turn the Provenance static site
 ## CSS Maintenance
 
 - Approach
-  - v1: central CSS variables and small CSS in `Layout` (RSX) to keep SSG minimal.
-  - v1.1: extract to a standalone CSS asset and include `<link rel="stylesheet">`.
+  - v1: extract to a standalone CSS asset (`/assets/site.css`) and include `<link rel="stylesheet" href="/assets/site.css">`.
+  - Next: consider factoring CSS per-component if/when RSX `Layout` is introduced.
 - Tooling (no Node required):
   - Use `lightningcss` (Rust) in an `xtask` to minify and autoprefix.
   - Style linting with `stylelint` optional (can be run in CI if Node is available).

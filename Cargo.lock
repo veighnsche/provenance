@@ -2824,6 +2824,7 @@ dependencies = [
 name = "proofdown_ast"
 version = "0.1.0"
 dependencies = [
+ "criterion",
  "serde",
  "serde_json",
 ]

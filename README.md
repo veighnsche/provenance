@@ -4,14 +4,14 @@ Secure, deterministic publishing of CI artifacts backed by cryptographic provena
 
 Status: Spec v1. Implementation scaffolding and reference Worker are forthcoming.
 
-> IMPORTANT: External Submodule Ownership — `crates/proofdown_parser`
+> IMPORTANT: External Submodule Ownership — `crates/proofdown_parser`, `crates/proofdown_renderer`
 >
-> The Proofdown parser lives in a separate git submodule and is maintained by external consultants.
-> Do NOT modify parser code in this repository. Propose changes in the submodule repository and
-> update the submodule pointer here. In this workspace, only integration wiring/feature gating
+> The Proofdown parser and the Proofdown HTML renderer live in separate git submodules and are maintained by external consultants.
+> Do NOT modify code in these submodules in this repository. Propose changes in the respective submodule repositories and
+> update the submodule pointers here. In this workspace, only integration wiring/feature gating
 > should be changed.
 >
-> Path: `crates/proofdown_parser/` (nested workspace)
+> Paths: `crates/proofdown_parser/`, `crates/proofdown_renderer/` (nested workspaces)
 > Feature gating in SSG: `external_pml`
 
 ---
@@ -42,7 +42,7 @@ We prioritize verifiable evidence and human‑readable documentation over implem
 - Index: The sole source of truth. Produced by CI, signed with Ed25519, and lists all renderable artifacts plus front‑page markup.
 - Artifact: Any file emitted by CI that is referenced by id in the Index, including specs, contracts, test outputs, generated documentation, and AI‑authored proofs.
 - Proofdown (working name; formerly “CMD”): a safe, component‑based markup that is less than HTML and more than Markdown, designed for AI to author deterministically and for humans to review. It supports a CommonMark/GFM subset (including tables) for text content; raw HTML is not supported and is treated as literal text/escaped. Strictly whitelisted; no raw HTML/JS/CSS.
-- Worker: A Cloudflare Worker (V8 isolate) that fetches the Index and signature, verifies them, lazily verifies artifact digests, invokes the Rust parser via WASM to render Proofdown → HTML, and serves routes.
+- Worker: A Cloudflare Worker (V8 isolate) that fetches the Index and signature, verifies them, lazily verifies artifact digests, invokes the Rust parser and renderer via WASM to render Proofdown → HTML, and serves routes.
 
 ---
 
@@ -176,12 +176,13 @@ Example Proofdown front page:
 
 - Cloudflare Worker (JS/TS, V8 isolate) is the host. Heavy logic (parsing, canonicalization) runs in Rust compiled to WASM.
 - Rust crates (planned):
-  - `crates/proofdown_parser`: parser + AST; `no_std`‑friendly; `wasm-bindgen` bindings.
+  - `crates/proofdown_parser`: parser + AST; `no_std`‑friendly; `wasm-bindgen` bindings. (external submodule)
+  - `crates/proofdown_renderer`: Proofdown AST → safe HTML; deterministic; `wasm-bindgen` bindings. (external submodule)
   - `crates/index_contract`: Index schema, canonicalization, Ed25519 verification helpers.
-  - `crates/renderers`: pure, deterministic render helpers for known viewers.
+  - `crates/renderers`: pure, deterministic render helpers for non‑Proofdown viewers.
   - `crates/wasm_adapter`: glue between Workers and WASM (streams, digest, errors).
 - Local dev: Miniflare; Deploy: Wrangler; Secrets: Worker env for public key.
-- Data flow: Request → fetch Index+sig → verify (WebCrypto or `index_contract`) → fetch artifact → verify SHA‑256 → parse Proofdown (WASM) → render HTML → stream response.
+- Data flow: Request → fetch Index+sig → verify (WebCrypto or `index_contract`) → fetch artifact → verify SHA‑256 → parse Proofdown (WASM) → render via `proofdown_renderer` (WASM) → stream response.
 
 ---
 
@@ -282,14 +283,15 @@ This repository currently contains the Spec. A reference implementation will fol
 3) Publish `.provenance/manifest.json`, its signature, and artifacts to a static location (e.g., `ci-snapshots` branch or object storage).
 4) Scaffold a Rust workspace:
    - `crates/proofdown_parser` (Rust→WASM via `wasm-bindgen`)
+   - `crates/proofdown_renderer` (Rust→WASM via `wasm-bindgen`)
    - `crates/index_contract` (schema, canonicalization, Ed25519 verification)
-   - `crates/renderers` (deterministic helpers)
+   - `crates/renderers` (deterministic helpers for non‑Proofdown viewers)
    - `crates/wasm_adapter` (Workers bindings)
 5) Implement a Cloudflare Worker (TypeScript) that:
    - Fetches `.provenance/manifest.json` and `.provenance/manifest.json.sig`
    - Verifies the signature using WebCrypto (`crypto.subtle`) or calls into `index_contract` WASM
    - Lazily fetches and verifies artifact bytes by SHA‑256 before rendering
-   - Uses `proofdown_parser` WASM to render Proofdown → HTML
+   - Uses `proofdown_parser` + `proofdown_renderer` WASM to render Proofdown → HTML
 6) Expose routes: `/`, `/fragment/{artifact_id}`, and `/a/{id}`; wire up ETag and bounded TTL caching.
 7) Ship the minimum renderer set and add specialized viewers behind flags.
 
@@ -302,8 +304,9 @@ Example repository layout:
 ├── Cargo.toml                          # Rust workspace
 ├── crates/
 │   ├── proofdown_parser/               # Parser + AST (Rust→WASM)
+│   ├── proofdown_renderer/             # Proofdown AST → safe HTML (Rust→WASM)
 │   ├── index_contract/                 # Index schema/canonicalization/signature
-│   ├── renderers/                      # Deterministic viewer helpers
+│   ├── renderers/                      # Deterministic viewer helpers (non‑Proofdown)
 │   └── wasm_adapter/                   # Workers/WASM glue
 ├── .provenance/
 │   ├── manifest.json                   # Produced by CI (signed)

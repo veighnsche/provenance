@@ -10,7 +10,7 @@ Status: draft. Behavior described here is normative for the Worker implementatio
 
 - Run entirely within the Cloudflare Workers V8 isolate.
 - Verify provenance before rendering anything: Ed25519 signature for the Index, SHA‑256 for artifacts.
-- Render Proofdown → HTML deterministically (via WASM parser) and serve a minimal set of routes.
+- Render Proofdown → HTML deterministically (via WASM parser + renderer) and serve a minimal set of routes.
 - Stream large content and enforce strict security boundaries.
 
 ---
@@ -144,8 +144,9 @@ On every request needing data:
 
 5) Render Proofdown → HTML
 
-- Load the Proofdown parser WASM (Rust→WASM) at startup; reuse instance across requests when possible.
-- Feed AST into deterministic renderers mapped by `render` + `media_type`.
+- Load the Proofdown parser and renderer WASM modules (Rust→WASM) at startup; reuse instances across requests when possible.
+- Parse Proofdown into AST using the parser, then render via `proofdown_renderer` to safe HTML.
+- For non‑Proofdown artifact viewers, use deterministic viewer helpers mapped by `render` + `media_type`.
 - All text output must be sanitized before HTML emission; strictly avoid client scripts.
 
 ---
@@ -297,7 +298,7 @@ async function verifyArtifact(env: Env, path: string, expectedSha256Hex: string)
 
 - Index signature verified with `INDEX_PUBKEY_ED25519`.
 - Artifact `sha256` verified before embedding or linking to raw bytes.
-- Proofdown parser (WASM) used for all `.pml` documents; unknown components rejected.
+- Proofdown parser + renderer (WASM) used for all `.pml` documents; unknown components rejected.
 - Only `RAW_BASE_URL` descendants fetched; no dynamic host fetches.
 - Strong CSP headers set on all HTML responses.
 

@@ -14,10 +14,8 @@ pub struct ArtifactView<'a> {
 pub use renderers::{Coverage, TestSummary};
 
 pub fn page_base(inner_html: String) -> String {
-    let style = r#"body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,sans-serif;margin:0;padding:0;color:#111} .container{max-width:1040px;margin:0 auto;padding:24px} header{padding:16px 0;border-bottom:1px solid #eee;margin-bottom:24px} .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px} .card{border:1px solid #eee;border-radius:8px;padding:16px;background:#fff} table{width:100%;border-collapse:collapse} thead th{scope:col} th,td{padding:8px;border-bottom:1px solid #eee;text-align:left} .badge{display:inline-block;padding:2px 8px;border-radius:6px;font-size:12px;color:#fff} .ok{background:#28a745} .warn{background:#ff9800} .err{background:#d32f2f} code, pre{background:#f7f7f7;border-radius:6px;padding:2px 6px} pre{padding:12px;overflow-x:auto} .muted{color:#777;font-size:14px} .skip-link{position:absolute;left:-10000px;top:auto;width:1px;height:1px;overflow:hidden} .skip-link:focus{position:static;width:auto;height:auto;}"#;
     format!(
-        "<!doctype html><html lang=\"en\"><head><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"><style>{}</style></head><body><a href=\"#main\" class=\"skip-link\">Skip to content</a><div class=\"container\"><main id=\"main\" role=\"main\">{}</main></div></body></html>",
-        style,
+        "<!doctype html><html lang=\"en\"><head><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"><link rel=\"stylesheet\" href=\"/assets/site.css\"></head><body><a href=\"#main\" class=\"skip-link\">Skip to content</a><div class=\"container\"><header class=\"topbar\" role=\"banner\"><nav aria-label=\"Global\" class=\"global-nav\"><a href=\"/index.html\">Home</a><a href=\"/artifacts/\">Artifacts</a><a href=\"/badge/\">Badges</a><a href=\"/artifacts/#search\">Search</a></nav></header><main id=\"main\" role=\"main\">{}</main></div></body></html>",
         inner_html
     )
 }
@@ -66,3 +64,42 @@ fn html_escape(s: &str) -> String {
 }
 
 pub use renderers::{render_coverage, render_image, render_json_pretty, render_markdown, render_tests_summary};
+
+/// Site CSS (extracted from previous inline style), plus minimal layout for top bar and sidebars.
+pub fn site_css() -> &'static str {
+    r#"body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,sans-serif;margin:0;padding:0;color:#111;background:#fafafa}
+    a{color:inherit;text-decoration:underline}
+    .container{max-width:1040px;margin:0 auto;padding:24px}
+    .topbar{padding:8px 0 16px 0;border-bottom:1px solid #eee;margin-bottom:16px}
+    .global-nav{display:flex;gap:16px;flex-wrap:wrap}
+    .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px}
+    .card{border:1px solid #eee;border-radius:8px;padding:16px;background:#fff}
+    header.page{padding:16px 0;border-bottom:1px solid #eee;margin-bottom:24px}
+    table{width:100%;border-collapse:collapse}
+    thead th{scope:col}
+    th,td{padding:8px;border-bottom:1px solid #eee;text-align:left}
+    .badge{display:inline-block;padding:2px 8px;border-radius:6px;font-size:12px;color:#fff}
+    .ok{background:#28a745}
+    .warn{background:#ff9800}
+    .err{background:#d32f2f}
+    code, pre{background:#f7f7f7;border-radius:6px;padding:2px 6px}
+    pre{padding:12px;overflow-x:auto}
+    .muted{color:#777;font-size:14px}
+    .skip-link{position:absolute;left:-10000px;top:auto;width:1px;height:1px;overflow:hidden}
+    .skip-link:focus{position:static;width:auto;height:auto}
+    /* Content layout with optional left/right sidebars */
+    .content-grid{display:grid;gap:16px;grid-template-columns:220px 1fr 260px;align-items:start}
+    .left-nav{position:sticky;top:12px}
+    .right-meta{position:sticky;top:12px}
+    @media (max-width: 1024px){.content-grid{grid-template-columns:1fr}.left-nav,.right-meta{position:relative;top:auto}}
+    /* Filters/search form */
+    form.filters{display:grid;gap:12px;margin:16px 0}
+    form.filters .row{display:grid;grid-template-columns:160px 1fr;gap:8px;align-items:center}
+    input[type=search],select{padding:8px;border:1px solid #ddd;border-radius:6px;background:#fff}
+    button{padding:8px 12px;border:1px solid #ddd;border-radius:6px;background:#f7f7f7;cursor:pointer}
+    button:hover{background:#eee}
+    dl.meta{display:grid;grid-template-columns:120px 1fr;gap:8px}
+    dl.meta dt{color:#555}
+    dl.meta dd{margin:0}
+    "#
+}

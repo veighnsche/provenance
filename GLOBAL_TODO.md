@@ -30,7 +30,7 @@ Specs references for this plan:
 
 1) Repo bootstrap and examples
 2) `manifest_contract` (schema + canonicalize + verify)
-3) `proofdown_parser` and `renderers`
+3) `proofdown_parser` and `proofdown_renderer` (external submodules), plus `renderers` for non-Proofdown viewers
 4) `provenance_ssg` integration, truncation, determinism
 5) `badges` crate and SSG badge outputs
 6) BDD harness and feature step implementations
@@ -105,7 +105,7 @@ Specs references for this plan:
 
 ---
 
-## `renderers` crate
+## `renderers` crate (non‑Proofdown viewers)
 
 - [x] Pure, deterministic render helpers (no IO):
   - [x] `markdown` (safe)
@@ -137,7 +137,7 @@ Specs references for this plan:
   - [x] Schema validation
   - [x] Canonicalize + Ed25519 verify (fail build on mismatch)
 - [x] Parse front page `ci/front_page.pml` via `proofdown_parser`
-- [x] Render Proofdown AST via `renderers` with verified data context
+- [x] Render Proofdown AST via `proofdown_renderer` with verified data context
   - [x] Resolve `<artifact.*>` by `id` only; unknown `id` -> error
 - [x] Truncation policy for large artifacts (configurable limits)
   - [x] Show truncation banner + verified `Download` link
@@ -175,7 +175,7 @@ Specs references for this plan:
 - [ ] Implement routes:
   - [ ] `/`, `/fragment/:id`, `/a/:id`, `/download/:id`, `/health`, `/robots.txt`
 - [ ] Verify manifest signature (WebCrypto); lazily verify artifact SHA-256 on stream
-- [ ] Integrate Proofdown WASM parser; render via `renderers` (WASM or TS glue)
+- [ ] Integrate Proofdown WASM parser; render via `proofdown_renderer` (WASM or TS glue)
 - [ ] Badges: `/badge/:kind.json` and `/badge/:kind.svg` with ETag/Cache-Control
 - [ ] Strict fetch policy under `RAW_BASE_URL`; path normalization; strong CSP headers
 - [ ] ETag formulas and conditional requests

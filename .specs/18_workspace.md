@@ -2,12 +2,12 @@
 
 This document outlines the crates in the Provenance monorepo and how they wire together for a read-only, deterministic static site build.
 
-> IMPORTANT: External Submodule — `crates/proofdown_parser`
+> IMPORTANT: External Submodules — `crates/proofdown_parser`, `crates/proofdown_renderer`
 >
-> The Proofdown parser is an independent Rust workspace maintained by external consultants in a git submodule.
-> It is intentionally NOT a member of the outer workspace. Do not modify parser code in this repository; propose
-> changes in the submodule repo and update the submodule pointer here. In this workspace, only integration wiring
-> and feature gating should be changed.
+> The Proofdown parser and the Proofdown HTML renderer are independent Rust workspaces maintained by external
+> consultants in git submodules. They are intentionally NOT members of the outer workspace. Do not modify code
+> in these submodules in this repository; propose changes in their respective submodule repos and update the
+> submodule pointers here. In this workspace, only integration wiring and feature gating should be changed.
 
 ---
 
@@ -17,9 +17,9 @@ This document outlines the crates in the Provenance monorepo and how they wire t
   - Static site generator (read-only RSX/HTML + inline CSS)
   - Loads `.provenance/manifest.json`, verifies SHA-256 per artifact
   - Renders `/index.html`, `/a/{id}/index.html`, `/robots.txt`
-  - Will parse and render the Proofdown front page into RSX
+  - Will parse and render the Proofdown front page
   - Will generate static badges JSON/SVG files under `/badge/`
-  - Depends on: `manifest_contract`, `proofdown_parser`, `renderers`, `badges`
+  - Depends on: `manifest_contract`, `proofdown_parser` (submodule), `proofdown_renderer` (submodule), `renderers`, `badges`
 
 - `manifest_contract` (lib)
   - Manifest types, canonicalization helper, basic validation
@@ -31,9 +31,13 @@ This document outlines the crates in the Provenance monorepo and how they wire t
   - Validates components/attributes and link macro forms syntactically. Raw HTML in Markdown is not supported; it is treated as literal text/escaped at render time.
   - No rendering; pure parse + AST datatypes
 
+- `proofdown_renderer` (lib; external submodule)
+  - Pure, deterministic mapping from Proofdown AST to safe HTML fragments.
+  - Enforces component allowlist, stable attribute ordering, deterministic id generation, and strict sanitization.
+
 - `renderers` (lib)
-  - Pure, deterministic render helpers for known viewers (markdown/json/table:coverage/summary:test/image)
-  - Maps AST + verified data → RSX/HTML
+  - Pure, deterministic render helpers for non-Proofdown viewers (markdown/json/table:coverage/summary:test/image)
+  - Maps verified data → HTML snippets (no Proofdown responsibilities)
 
 - `badges` (lib)
   - Derives badge values from verified inputs (provenance/tests/coverage)
@@ -46,7 +50,7 @@ This document outlines the crates in the Provenance monorepo and how they wire t
 1) `provenance_ssg` loads and validates the manifest via `manifest_contract`.
 2) It computes SHA-256 of artifacts and marks verified status for display.
 3) It parses the Proofdown front page via `proofdown_parser`.
-4) It renders AST and viewers via `renderers` into RSX/HTML.
+4) It renders the Proofdown AST via `proofdown_renderer` and uses `renderers` for other artifact viewers; results are composed into final HTML.
 5) It writes static files and badges via `badges`.
 
 ---

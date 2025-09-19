@@ -91,11 +91,11 @@ pub fn run_with_args(args: Args) -> Result<()> {
         }
     }
 
-    // Prepare assets dir
+    // Prepare assets dir (always present to host site-wide assets like CSS)
     let assets_dir = args.out.join("assets");
-    if args.copy_assets {
-        fs::create_dir_all(&assets_dir).context("create assets dir")?;
-    }
+    fs::create_dir_all(&assets_dir).context("create assets dir")?;
+    // Write site CSS (extracted from inline styles)
+    fs::write(assets_dir.join("site.css"), render::site_css()).context("write site.css")?;
 
     // Build artifact views (deterministic order)
     let mut views = Vec::new();
@@ -103,7 +103,7 @@ pub fn run_with_args(args: Args) -> Result<()> {
         let src = args.root.join(&a.path);
         let (verified, digest_hex) = verify_sha256(&src, &a.sha256).unwrap_or((false, None));
 
-        // Copy asset if requested
+        // Copy artifact asset if requested
         let download_href = if args.copy_assets && src.is_file() {
             let base = src
                 .file_name()
@@ -347,15 +347,18 @@ fn render_front_page(doc: &proofdown_ast::Document, manifest: &mc::Manifest, vie
         let mut out = String::new();
         for b in blocks {
             match b {
-                proofdown_ast::Block::Heading { level, text } => {
-                    out.push_str(&format!("<h{}>{}</h{}>", level, html_escape(&interpolate(text, manifest)), level));
+                proofdown_ast::Block::Heading { level, inlines } => {
+                    let txt = inlines_to_text(inlines);
+                    out.push_str(&format!("<h{}>{}</h{}>", level, html_escape(&interpolate(&txt, manifest)), level));
                 }
-                proofdown_ast::Block::Paragraph { text } => {
-                    out.push_str(&format!("<p>{}</p>", html_escape(&interpolate(text, manifest))));
+                proofdown_ast::Block::Paragraph { inlines } => {
+                    let txt = inlines_to_text(inlines);
+                    out.push_str(&format!("<p>{}</p>", html_escape(&interpolate(&txt, manifest))));
                 }
                 proofdown_ast::Block::Component(c) => {
                     out.push_str(&render_component(c, manifest, views, truncate_limit, root)?);
                 }
+                _ => {}
             }
         }
         Ok(out)
@@ -408,6 +411,27 @@ fn render_front_page(doc: &proofdown_ast::Document, manifest: &mc::Manifest, vie
         out = out.replace("{{ commit }}", &m.commit);
         out = out.replace("{{ front_page.title }}", &m.front_page.title);
         out
+    }
+
+    fn inlines_to_text(inlines: &[proofdown_ast::Inline]) -> String {
+        use proofdown_ast::Inline as I;
+        let mut buf = String::new();
+        for i in inlines {
+            match i {
+                I::Text { text } => buf.push_str(text),
+                I::Emph { children }
+                | I::Strong { children }
+                | I::Strikethrough { children } => {
+                    buf.push_str(&inlines_to_text(children));
+                }
+                I::Code { text } => buf.push_str(text),
+                I::SoftBreak => buf.push(' '),
+                I::HardBreak => buf.push(' '),
+                I::Link { children, .. } => buf.push_str(&inlines_to_text(children)),
+                I::Image { alt, .. } => buf.push_str(alt),
+            }
+        }
+        buf
     }
 
     render_blocks(&doc.blocks, manifest, views, truncate_limit, root)
